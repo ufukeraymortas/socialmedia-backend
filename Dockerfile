@@ -1,6 +1,6 @@
 # 1. Java 17 ile başlayıp projeyi derle
 FROM maven:3-openjdk-17 AS builder
-
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
 # Proje dosyalarını Docker içine kopyala
 COPY . /app
 WORKDIR /app
