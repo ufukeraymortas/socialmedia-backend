@@ -19,8 +19,8 @@ import jakarta.annotation.PostConstruct; // Sunucu başlarken çalışması içi
 public class FileStorageService {
 
     // application.properties dosyamızdan o ayarı buraya çekiyoruz
-    @Value("${file.upload-dir}")
-    private String uploadDir;
+	@Value("${file.upload-dir}")
+	private String uploadDir;
 
     private Path uploadPath; // ./uploads klasörünün tam yolu
 
