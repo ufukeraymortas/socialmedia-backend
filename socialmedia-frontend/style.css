@@ -1,0 +1,293 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 700px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    color: #1c1e21;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+/* YENİ: Başlangıçta bölümleri gizlemek için */
+.hidden {
+    display: none;
+}
+
+/* YENİ: Giriş/Kayıt Sekmeleri */
+.auth-tabs {
+    display: flex;
+    margin-bottom: 20px;
+}
+.auth-tabs button {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f7f7f7;
+    cursor: pointer;
+}
+.auth-tabs button.active {
+    background-color: #1877f2;
+    color: white;
+    border-color: #1877f2;
+}
+
+.form-container, form {
+    display: flex;
+    flex-direction: column;
+}
+
+input[type="text"],
+input[type="password"],
+textarea {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+button {
+    background-color: #1877f2;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #166fe5;
+}
+
+/* YENİ: Ana Akış Başlığı ve Çıkış Butonu */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+.user-info {
+    display: flex;
+    align-items: center;
+}
+#current-user-info {
+    font-size: 14px;
+    color: #555;
+    font-weight: bold;
+    margin-right: 15px;
+}
+#logout-btn {
+    background-color: #e44d3a; /* Farklı bir renk */
+    padding: 8px 12px;
+    font-size: 14px;
+}
+#logout-btn:hover {
+    background-color: #c93a2a;
+}
+
+/* Post Stilleri (Aynı kaldı) */
+.post {
+    border: 1px solid #ddd;
+    background-color: #fafafa;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+}
+.post-author {
+    font-weight: bold;
+    color: #0563bb;
+    margin-bottom: 5px;
+}
+.post-content {
+    margin-bottom: 10px;
+}
+.post-timestamp {
+    font-size: 12px;
+    color: #888;
+}
+.post-image {
+    max-width: 100%; /* Konteynerin dışına taşmasın */
+    border-radius: 6px;
+    margin-top: 10px; /* İçerikle arasında boşluk */
+}
+.post-video {
+    max-width: 100%; /* Konteynerin dışına taşmasın */
+    border-radius: 6px;
+    margin-top: 10px;
+    background-color: #000; /* Videolar yüklenirken siyah bir kutu görünsün */
+}
+.comments-section {
+    margin-top: 20px;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 15px;
+}
+
+/* Yorum listesi */
+.comments-list {
+    max-height: 300px; /* Çok fazla yorum varsa kaydırma çubuğu çıkar */
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+/* Tek bir yorumun stil kutusu */
+.comment {
+    display: flex;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #0563bb;
+    margin-right: 8px;
+    /* Yazar adı uzunsa alta kaymasın, sabit kalsın */
+    flex-shrink: 0; 
+}
+
+.comment-content {
+    /* Yorum metni uzunsa satır başına dönsün */
+    word-break: break-word; 
+}
+
+.comment-timestamp {
+    font-size: 12px;
+    color: #888;
+    margin-left: 10px;
+}
+
+/* Yorumdaki fotoğraf veya video (Post'takilerle aynı) */
+.comment-image,
+.comment-video {
+    max-width: 100%;
+    border-radius: 6px;
+    margin-top: 5px;
+}
+
+/* Yorum yapma formu */
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+/* Yorum metin kutusu */
+.comment-form textarea {
+    min-height: 40px; /* Daha kısa bir kutu */
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+/* Yorum dosya seçme butonu */
+.comment-form input[type="file"] {
+    font-size: 12px;
+    margin-bottom: 5px;
+}
+
+/* Yorum gönder butonu */
+.comment-form button {
+    padding: 6px 10px;
+    font-size: 14px;
+    /* Butonun sağa yaslanması için */
+    align-self: flex-end; 
+}
+/* ... (mevcut stil kodlarınızın sonu) ... */
+
+/* --- YENİ: İÇ İÇE YORUM (CEVAP) STİLLERİ --- */
+
+/* Tek bir yorumun stil kutusu (biraz değiştirdik) */
+.comment {
+    display: flex;
+    flex-direction: column; /* Artık dikey bir kutu */
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.comment-main {
+    display: flex; /* Yazar + içerik + zaman yanyana */
+    align-items: flex-start;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #0563bb;
+    margin-right: 8px;
+    flex-shrink: 0; 
+}
+
+.comment-content {
+    word-break: break-word; 
+}
+
+.comment-timestamp {
+    font-size: 12px;
+    color: #888;
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+
+/* Yorumun altındaki (Cevapla, Cevapları Gör) butonları */
+.comment-actions {
+    display: flex;
+    gap: 10px;
+    margin-left: 10px; /* Biraz içeriden başlasın */
+    margin-top: 5px;
+}
+
+.comment-actions button {
+    background: none;
+    border: none;
+    color: #0563bb;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 2px;
+}
+.comment-actions button:hover {
+    text-decoration: underline;
+}
+
+/* Yorumun cevaplarını (replies) tutan konteyner */
+.replies-container {
+    /* Cevapların ana yorumdan içeride görünmesini sağlar */
+    margin-left: 30px; 
+    border-left: 2px solid #e0e0e0;
+    padding-left: 10px;
+    margin-top: 10px;
+}
+
+/* Yorum yapma formuna (kime cevap verildiğini gösteren) küçük bir yazı */
+#replying-to-info {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 5px;
+    display: none; /* Başlangıçta gizli */
+}
+#replying-to-info button {
+    background: none;
+    border: none;
+    color: #cc0000;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0 5px;
+}

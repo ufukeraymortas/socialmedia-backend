@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sosyal Medya MVP</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        
+        <div id="auth-container">
+            <h1>senate</h1>
+            
+            <div class="auth-tabs">
+                <button id="show-login-btn" class="active">Giriş Yap</button>
+                <button id="show-register-btn">Kayıt Ol</button>
+            </div>
+
+            <form id="login-form">
+                <h2>Giriş Yap</h2>
+                <input type="text" id="login-username" placeholder="Kullanıcı Adı" required>
+                <input type="password" id="login-password" placeholder="Şifre" required>
+                <button type="submit">Giriş Yap</button>
+            </form>
+
+            <form id="register-form" class="hidden">
+                <h2>Kayıt Ol</h2>
+                <input type="text" id="register-username" placeholder="Kullanıcı Adı" required>
+                <input type="password" id="register-password" placeholder="Şifre" required>
+                <button type="submit">Kayıt Ol</button>
+            </form>
+        </div>
+
+
+        <div id="main-app-container" class="hidden">
+            
+            <div class="header">
+                <h2>Ana Akış</h2>
+                <div class="user-info">
+                    <span id="current-user-info"></span>
+                    <button id="logout-btn">Çıkış Yap</button>
+                </div>
+            </div>
+
+            <div class="form-container">
+    <form id="post-form">
+        <textarea id="post-content" placeholder="Ne düşünüyorsun?" required></textarea>
+
+        <input type="file" id="post-file" accept="image/*,video/*">
+
+        <button type="submit">Gönder</button>
+    </form>
+</div>
+
+            <div class="timeline">
+                <div id="posts-container">
+                    </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
