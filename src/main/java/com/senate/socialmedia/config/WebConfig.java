@@ -9,16 +9,12 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 public class WebConfig implements WebMvcConfigurer {
 
 	@Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                // Frontend URL'niz HTTP değil, HTTPS kullanıyor.
-                // Lütfen aşağıdaki "senato-frontend.vercel.app" gibi adresi, 
-                // Vercel'in size verdiği o gerçek adresle (URL'nizle) değiştirin.
-                .allowedOrigins("https://senato.vercel.app") 
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*");
-    }
-
+	public void addCorsMappings(CorsRegistry registry) {
+	    registry.addMapping("/**") // Tüm yollara izin ver
+	            .allowedOrigins("*") // HANGİ ADRESLERDEN İSTEK GELDİĞİ ÖNEMLİ DEĞİL (Vercel, Render, Localhost)
+	            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+	            .allowedHeaders("*");
+	}
  @Override
  public void addResourceHandlers(ResourceHandlerRegistry registry) {
      // Eğer birisi /uploads/dosyaadi.jpg gibi bir URL isterse,

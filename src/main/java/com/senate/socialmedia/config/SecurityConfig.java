@@ -20,22 +20,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .headers(headers -> 
-                headers.frameOptions(frameOptions -> frameOptions.disable())
-            )
-            .authorizeHttpRequests(authz -> authz
-            	    // H2 Console Kuralı:
-            	    .requestMatchers("/h2-console/**").permitAll() 
+        .csrf(csrf -> csrf.disable()) // CSRF korumasını kapat (API'ler için gerekli)
 
-            	    // API Kuralı:
-            	    .requestMatchers("/api/**").permitAll()
-
-            	    // YENİ KURAL: Fotoğrafların görünmesi için
-            	    .requestMatchers("/uploads/**").permitAll()
-
-            	    .anyRequest().authenticated()
-            	);
+        // Tüm API ve uploads yollarına İZİN VER (Giriş zorunluluğu yok)
+        .authorizeHttpRequests(authz -> authz
+            .requestMatchers("/api/**", "/uploads/**").permitAll()
+            .anyRequest().authenticated()
+        );
         return http.build();
     }
 }
