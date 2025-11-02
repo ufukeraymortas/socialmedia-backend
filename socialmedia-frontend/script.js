@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // Backend (Java) sunucumuzun adresi
-    const API_URL = 'http://localhost:8080';
+    const API_URL = 'https://senato.onrender.com';
 
     // HTML'deki BÖLÜMLERİ yakalıyoruz
     const authContainer = document.getElementById('auth-container');
