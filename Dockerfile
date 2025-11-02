@@ -1,5 +1,5 @@
 # 1. Java 17 ile başlayıp projeyi derle
-FROM maven:3.8.6-openjdk-17 AS builder
+FROM maven:3-openjdk-17 AS builder
 
 # Proje dosyalarını Docker içine kopyala
 COPY . /app
