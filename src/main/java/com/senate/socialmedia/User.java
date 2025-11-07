@@ -18,18 +18,36 @@ public class User {
 
     private String username; // Kullanıcı adı için bir sütun
     private String password; // Şifre için bir sütun
+    private String title;             // Kullanıcının ünvanı (örn: "Yazılımcı")
+    private String bio;   
+    private String profilePictureUrl; 
+   
+    public String getProfilePictureUrl() {
+		return profilePictureUrl;
+	}
 
-    // (Gerçek bir uygulamada 'email', 'bio', 'profilResmi' gibi alanlar da eklenir)
+	public void setProfilePictureUrl(String profilePictureUrl) {
+		this.profilePictureUrl = profilePictureUrl;
+	}
 
-    // Spring'in (daha doğrusu JPA'nın) bu sınıfı kullanabilmesi için 
-    // boş bir constructor (yapıcı metot) gerekir.
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public String getBio() {
+		return bio;
+	}
+
+	public void setBio(String bio) {
+		this.bio = bio;
+	}
+
     public User() {
     }
-
-    // --- Getter ve Setter Metotları ---
-    // 'private' alanlara dışarıdan erişmek için kullanılır.
-    // Eclipse'te bunları otomatik oluşturabilirsiniz:
-    // Kodun içinde boş bir yere sağ tıklayın -> Source -> Generate Getters and Setters... -> Select All -> Generate
 
     public Long getId() {
         return id;
