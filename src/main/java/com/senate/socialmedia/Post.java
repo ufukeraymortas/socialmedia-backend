@@ -1,44 +1,100 @@
 package com.senate.socialmedia;
 
-import java.time.LocalDateTime; // Gönderi zamanı için
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "posts")
 public class Post {
-
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String content; // Gönderinin içeriği (örn: "Merhaba dünya!")
+    private String content; 
+    
+    private LocalDateTime timestamp;
+    
+    private String imageUrl; // Fotoğraf adresi
+    
+    private String videoUrl; // Video adresi
 
-    private LocalDateTime timestamp; // Gönderinin atıldığı zaman
+    // İlişki 1: Kim attı? (Post'tan User'a)
+    @ManyToOne(fetch = FetchType.EAGER) // Postu çekerken yazarı hemen getir
+    @JoinColumn(name = "author_id") 
+    private User author;
 
-   
-    @ManyToOne(fetch = FetchType.EAGER) // (Performans için 'LAZY' kullanılır)
-    @JoinColumn(name = "author_id") // Veritabanındaki yabancı anahtar sütununun adı
-    private User author; // Gönderiyi kimin yazdığı bilgisi
- // ... (mevcut timestamp ve author alanları)
+    // İlişki 2: Beğeniler (Post'tan Like'a)
+    // Post silinirse, ona ait tüm beğeniler de silinsin (cascade)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // JSON sonsuz döngüsünü engellemek için
+    private Set<Like> likes = new HashSet<>(); 
 
- // YENİ ALAN: Yüklenen fotoğrafın sunucudaki yolunu
- // (örn: /uploads/resim123.jpg) saklamak için.
-    private String imageUrl;
-    private String videoUrl;
+    // İlişki 3: Yorumlar (Post'tan Comment'a)
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // JSON sonsuz döngüsünü engellemek için
+    private Set<Comment> comments;
 
-    public String getVideoUrl() {
-		return videoUrl;
+    // JPA için gerekli boş constructor
+    public Post() {
+    }
+    
+    // --- Getter ve Setter Metotları ---
+
+    public Long getId() {
+        return id;
+    }
+    // ... (Diğer Get/Set metotlarını ekleyin veya otomatik oluşturun)
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+    
+    // Yazar (author) için Getter ve Setter'ları burada olmalıdır.
+    // Likes ve Comments için de Getter ve Setter'lar burada olmalıdır.
+    
+    public Set<Comment> getComments() {
+		return comments;
 	}
 
-	public void setVideoUrl(String videoUrl) {
-		this.videoUrl = videoUrl;
+	public void setComments(Set<Comment> comments) {
+		this.comments = comments;
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public User getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(User author) {
+        this.author = author;
+    }
+
+    public Set<Like> getLikes() {
+        return likes;
+    }
+
+    public void setLikes(Set<Like> likes) {
+        this.likes = likes;
+    }
+
+	public LocalDateTime getTimestamp() {
+		return timestamp;
+	}
+
+	public void setTimestamp(LocalDateTime timestamp) {
+		this.timestamp = timestamp;
 	}
 
 	public String getImageUrl() {
@@ -49,41 +105,14 @@ public class Post {
 		this.imageUrl = imageUrl;
 	}
 
-    public Post() {
-    }
+	public String getVideoUrl() {
+		return videoUrl;
+	}
+
+	public void setVideoUrl(String videoUrl) {
+		this.videoUrl = videoUrl;
+	}
     
-    // --- Getter ve Setter Metotları ---
-    // Yine sağ tıklayın -> Source -> Generate Getters and Setters... -> Select All -> Generate
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public LocalDateTime getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public User getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(User author) {
-        this.author = author;
-    }
+    
+    // ... (Diğer tüm alanlar için getter ve setter'lar olmalıdır)
 }

@@ -1,25 +1,50 @@
 package com.senate.socialmedia;
 
-import jakarta.persistence.*;
+import jakarta.persistence.*; // JPA Annotations (Etiketleri) için
 
 @Entity
-@Table(name = "post_likes")
+@Table(name = "post_likes") // Veritabanındaki tablonun adı
 public class Like {
-
+	
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    // Kim beğendi?
+    
+    
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id") // Bu sütun, 'users' tablosuna bağlanır
     private User user;
-
-    // Neyi beğendi?
+    
     @ManyToOne
-    @JoinColumn(name = "post_id")
+    @JoinColumn(name = "post_id") 
     private Post post;
+    
+    
+    // JPA için gerekli boş constructor
+    public Like() {
+    }
 
-    // Getter/Setter ve constructor'ları ekleyin.
-    // (JPA, bu model üzerinden kolayca 'Post 5'i beğenen kullanıcıları' bulabilir.)
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Post getPost() {
+        return post;
+    }
+
+    public void setPost(Post post) {
+        this.post = post;
+    }
 }

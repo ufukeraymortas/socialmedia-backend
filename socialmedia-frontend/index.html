@@ -33,7 +33,24 @@
             </form>
         </div>
 
+<div class="profile-info">
+    <h3 id="profile-title"></h3>
+    <p id="profile-bio"></p>
 
+    <img id="profile-picture" src="" alt="Profil Resmi" style="width: 100px; height: 100px; border-radius: 50%;">
+
+    <button id="show-edit-profile-btn">Profili Düzenle</button>
+
+    <form id="edit-profile-form" class="hidden">
+        <h4>Profili Düzenle</h4>
+        <input type="text" id="edit-title" placeholder="Yeni Ünvanınız">
+        <textarea id="edit-bio" placeholder="Yeni Biyonuz"></textarea>
+        <input type="file" id="edit-profile-picture" accept="image/*">
+        <button type="submit">Kaydet</button>
+        <button type="button" id="cancel-edit-btn">İptal</button>
+    </form>
+</div>
+<hr>
         <div id="main-app-container" class="hidden">
             
             <div class="header">
