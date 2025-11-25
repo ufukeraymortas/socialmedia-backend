@@ -24,7 +24,7 @@ public class SecurityConfig {
 
         // Tüm API ve uploads yollarına İZİN VER (Giriş zorunluluğu yok)
         .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/api/**", "/uploads/**").permitAll()
+            .requestMatchers("/api/**", "/uploads/**", "/h2-console/**").permitAll()
             .anyRequest().authenticated()
         );
         return http.build();
