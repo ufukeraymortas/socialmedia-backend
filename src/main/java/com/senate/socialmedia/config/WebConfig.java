@@ -15,12 +15,11 @@ public class WebConfig implements WebMvcConfigurer {
 	            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
 	            .allowedHeaders("*");
 	}
- @Override
- public void addResourceHandlers(ResourceHandlerRegistry registry) {
-     // Eğer birisi /uploads/dosyaadi.jpg gibi bir URL isterse,
-     // Spring'e "git ve ./uploads/ klasörünün içindeki
-     // o dosyayı bul" diyoruz.
-     registry.addResourceHandler("/uploads/**")
-             .addResourceLocations("file:./uploads/");
- }
+	@Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // "/uploads/resim.jpg" isteği gelirse...
+        registry.addResourceHandler("/uploads/**")
+                // ...git "uploads" klasörüne bak. ("file:" demek diskten oku demek)
+                .addResourceLocations("file:./uploads/");
+    }
 }
