@@ -45,4 +45,11 @@ public class CommentController {
         // Servise "Bana bu postun yorumlarını ver" diyoruz
         return commentService.getCommentsForPost(postId);
     }
+    
+ // GET /api/posts/user/{userId}/comments -> Bir kullanıcının attığı yorumları getir
+    @GetMapping("/user/{userId}")
+    public List<Comment> getCommentsByUser(@PathVariable Long userId) {
+        // Bu metodu Service katmanına da eklemeniz gerekecek:
+        return commentService.getCommentsByUser(userId);
+    }
 }

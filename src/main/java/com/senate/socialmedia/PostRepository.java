@@ -14,5 +14,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByOrderByTimestampDesc();
     
     // (Gelecekteki profil sayfası için): Belirli bir kullanıcının tüm postlarını bul
-    List<Post> findByAuthor(User user);
+    List<Post> findByAuthorOrderByTimestampDesc(User author);
 }

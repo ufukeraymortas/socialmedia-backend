@@ -16,6 +16,7 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 	// (Post'a göre bul... VE Ana Yorumu Boş olanları... Sırala)
 	List<Comment> findByPostAndParentCommentIsNullOrderByTimestampAsc(Post post);
     
+	List<Comment> findByAuthorOrderByTimestampDesc(User author);
     // 2. (Alternatif) Belirli bir posta ait tüm yorumları bul
     // (Zaman damgasına göre azalan sırada - en YENİ yorum en üstte)
     // List<Comment> findByPostOrderByTimestampDesc(Post post);

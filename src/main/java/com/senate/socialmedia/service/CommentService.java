@@ -45,6 +45,13 @@ public class CommentService {
         
         	return commentRepository.findByPostAndParentCommentIsNullOrderByTimestampAsc(post);
     }
+    
+    public List<Comment> getCommentsByUser(Long userId) {
+        User author = userRepository.findById(userId)
+             .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
+        // Repository'de findByAuthorOrderByTimestampDesc metodunun olması gerekir
+        return commentRepository.findByAuthorOrderByTimestampDesc(author);
+    }
  
 
     public Comment createComment(String content, Long authorId, Long postId, MultipartFile file, Long parentCommentId) {
