@@ -7,42 +7,48 @@ import java.util.Map;
 import java.util.HashMap;
 
 import com.senate.socialmedia.service.LikeService;
+import com.senate.socialmedia.VoteType;
 
 @RestController
-@RequestMapping("/api/posts/{postId}/likes") // Post bazlı API'ler
+@RequestMapping("/api/posts/{postId}/vote") // Adresi '/vote' olarak değiştirdik
 public class LikeController {
 
     @Autowired
     private LikeService likeService;
 
     /**
-     * Beğeni ekleme/kaldırma işlemi için API (toggle).
-     * POST /api/posts/{postId}/likes?userId=123
+     * Oy Ver (Up veya Down)
+     * POST /api/posts/5/vote?userId=1&type=UP
      */
     @PostMapping
-    public Map<String, Boolean> toggleLike(@PathVariable Long postId, @RequestParam Long userId) {
+    public Map<String, Object> vote(@PathVariable Long postId, 
+                                    @RequestParam Long userId,
+                                    @RequestParam VoteType type) { // 'type' parametresi UP veya DOWN olacak
         
-        boolean isLiked = likeService.toggleLike(postId, userId);
+        likeService.vote(postId, userId, type);
         
-        // Frontend'e yeni durumu ve beğeni sayısını döndür
-        Map<String, Boolean> response = new HashMap<>();
-        response.put("isLiked", isLiked);
+        // İşlemden sonra güncel puanı dön
+        long newScore = likeService.getPostScore(postId);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("newScore", newScore);
         return response;
     }
 
     /**
-     * Beğeni sayısını ve kullanıcının beğenip beğenmediğini döndürür.
-     * GET /api/posts/{postId}/likes?userId=123
+     * Puanı ve kullanıcının durumunu getir
+     * GET /api/posts/5/vote?userId=1
      */
     @GetMapping
-    public Map<String, Object> getLikeStatus(@PathVariable Long postId, @RequestParam Long userId) {
+    public Map<String, Object> getVoteStatus(@PathVariable Long postId, @RequestParam Long userId) {
         
-        long count = likeService.getLikeCount(postId);
-        boolean isLiked = likeService.isLikedByUser(postId, userId);
+        long score = likeService.getPostScore(postId);
+        VoteType userVote = likeService.getUserVoteType(postId, userId); // UP, DOWN veya null
         
         Map<String, Object> response = new HashMap<>();
-        response.put("count", count);
-        response.put("isLiked", isLiked);
+        response.put("score", score);
+        response.put("userVote", userVote); // Frontend bunu kullanarak butonu boyayacak
         return response;
     }
 }

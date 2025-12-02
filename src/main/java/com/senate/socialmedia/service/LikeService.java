@@ -3,72 +3,80 @@ package com.senate.socialmedia.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-// Gerekli importlar (kütüphane çağrıları)
 import com.senate.socialmedia.Like;
 import com.senate.socialmedia.LikeRepository;
 import com.senate.socialmedia.Post;
-import com.senate.socialmedia.User;
 import com.senate.socialmedia.PostRepository;
+import com.senate.socialmedia.User;
 import com.senate.socialmedia.UserRepository;
+import com.senate.socialmedia.VoteType; // Enum'ımızı ekledik
 
-import java.util.Optional; // Hata veren Optional sınıfı için
+import java.util.Optional;
 
 @Service
 public class LikeService {
 
     @Autowired
     private LikeRepository likeRepository;
-
     @Autowired
     private PostRepository postRepository;
-
     @Autowired
     private UserRepository userRepository;
 
     /**
-     * Bir postu beğenme/beğeniyi kaldırma işlemini yönetir (toggle).
-     * @return true ise yeni beğeni eklendi, false ise mevcut beğeni kaldırıldı.
+     * Oy verme işlemi (Upvote veya Downvote).
+     * Mantık: Aynı oya tekrar basarsa siler, farklıya basarsa değiştirir.
      */
-    public boolean toggleLike(Long postId, Long userId) {
-        
-        // 1. Kullanıcı ve Post'un varlığını kontrol et
+    public void vote(Long postId, Long userId, VoteType voteType) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
-        
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post bulunamadı."));
 
-        // 2. Bu kullanıcının bu postu zaten beğenip beğenmediğini kontrol et
-        // findByUserIdAndPostId metodu LikeRepository'de tanımlı.
+        // Kullanıcı daha önce oy vermiş mi?
         Optional<Like> existingLike = likeRepository.findByUserIdAndPostId(userId, postId);
 
         if (existingLike.isPresent()) {
-            // 3. Zaten beğendiyse: Beğeniyi Kaldır (Delete)
-            // existingLike.get() ile Optional içindeki Like nesnesini alıyoruz.
-            likeRepository.delete(existingLike.get()); 
-            return false; // Beğeni kaldırıldı
+            Like like = existingLike.get();
+            
+            // SENARYO 1: Kullanıcı ZATEN aynı oyu vermiş (Örn: UP iken tekrar UP'a bastı)
+            if (like.getVoteType() == voteType) {
+                likeRepository.delete(like); // Oyu geri al (Sil)
+            } 
+            // SENARYO 2: Kullanıcı fikrini değiştirmiş (Örn: UP iken DOWN'a bastı)
+            else {
+                like.setVoteType(voteType); // Türü değiştir
+                likeRepository.save(like);  // Güncelle
+            }
         } else {
-            // 4. Beğenmediyse: Yeni Beğeni Ekle (Save)
+            // SENARYO 3: İlk defa oy veriyor
             Like newLike = new Like();
-            newLike.setUser(user);    // <-- setUser metodu Like.java'da tanımlı
-            newLike.setPost(post);    // <-- setPost metodu Like.java'da tanımlı
+            newLike.setUser(user);
+            newLike.setPost(post);
+            newLike.setVoteType(voteType); // UP mı DOWN mı olduğunu kaydet
             likeRepository.save(newLike);
-            return true; // Yeni beğeni eklendi
         }
     }
     
     /**
-     * Bir postun toplam beğeni sayısını döner.
+     * Reddit Puanını Hesapla: (Upvote Sayısı - Downvote Sayısı)
      */
-    public long getLikeCount(Long postId) {
-        // countByPostId metodu LikeRepository'de tanımlı.
-        return likeRepository.countByPostId(postId);
+    public long getPostScore(Long postId) {
+        Post post = postRepository.findById(postId).orElseThrow();
+        
+        long upvotes = likeRepository.countByPostAndVoteType(post, VoteType.UP);
+        long downvotes = likeRepository.countByPostAndVoteType(post, VoteType.DOWN);
+        
+        return upvotes - downvotes; // Sonuç eksi olabilir (Örn: -5)
     }
 
     /**
-     * Kullanıcının belirli bir postu beğenip beğenmediğini kontrol eder.
+     * Kullanıcının şu anki durumu nedir? (UP mı verdi, DOWN mu, yoksa HİÇBİRİ mi?)
+     * Frontend'de butonu renkli yapmak için lazım.
      */
-    public boolean isLikedByUser(Long postId, Long userId) {
-        return likeRepository.findByUserIdAndPostId(userId, postId).isPresent();
+    public VoteType getUserVoteType(Long postId, Long userId) {
+        return likeRepository.findByUserIdAndPostId(userId, postId)
+                .map(Like::getVoteType)
+                .orElse(null); // Hiç oy vermemişse null döner
     }
 }
