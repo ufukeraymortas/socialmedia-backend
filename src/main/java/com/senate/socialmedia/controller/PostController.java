@@ -34,13 +34,12 @@ public class PostController {
     // /api/posts adresine gelen bir HTTP POST isteğini yakalar
     // Bu, yeni gönderi oluşturma işlemidir
     @PostMapping
-    public Post createPost(@RequestParam("content") String content,
+    public Post createPost(@RequestParam(value = "content", required = false) String content, // İçerik bazen boş olabilir (Sadece RT yaparsa)
                            @RequestParam("authorId") Long authorId,
-                           @RequestParam(value = "file", required = false) MultipartFile file) {
-
-        // Gelen parçaları (content, authorId ve opsiyonel dosya)
-        // doğrudan güncellediğimiz PostService'e paslıyoruz.
-        return postService.createPost(content, authorId, file);
+                           @RequestParam(value = "file", required = false) MultipartFile file,
+                           @RequestParam(value = "originalPostId", required = false) Long originalPostId) {
+        
+        return postService.createPost(content, authorId, file, originalPostId);
     }
     
     @Autowired

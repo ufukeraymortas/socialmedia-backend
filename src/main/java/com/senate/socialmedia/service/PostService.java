@@ -35,42 +35,40 @@ public class PostService {
     /**
      * Yeni bir gönderi oluşturan iş mantığı.
      */
-    public Post createPost(String content, Long authorId, MultipartFile file) {
-
-        // 1. Gönderiyi atan kullanıcıyı (User) ID ile veritabanından bul
+    /**
+     * Yeni post, retweet veya alıntı oluşturur.
+     */
+    public Post createPost(String content, Long authorId, MultipartFile file, Long originalPostId) {
+        
+        // 1. Yazarı bul
         User author = userRepository.findById(authorId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı, id: " + authorId));
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
 
-        // 2. Yeni Post nesnesini oluştur
+        // 2. Yeni Post nesnesi
         Post newPost = new Post();
         newPost.setContent(content);
         newPost.setAuthor(author);
         newPost.setTimestamp(LocalDateTime.now());
+        
+        // 3. YENİ: Bu bir Retweet veya Alıntı mı?
+        if (originalPostId != null) {
+            Post original = postRepository.findById(originalPostId)
+                    .orElseThrow(() -> new RuntimeException("Orijinal post bulunamadı."));
+            newPost.setOriginalPost(original);
+        }
 
-        // 3. YENİ FOTOĞRAF MANTIĞI
-        // Eğer bir dosya yüklendiyse (ve boş değilse)
-     // ...
-     // 3. YENİ FOTOĞRAF/VİDEO MANTIĞI
-     if (file != null && !file.isEmpty()) {
-         // Dosyayı FileStorageService kullanarak diske kaydet
-         // (Bu servis hem fotoğraf hem videoyu kaydedebilir, o jeneriktir)
-         String fileName = fileStorageService.storeFile(file);
+        // 4. Medya Kaydetme (Aynı kalıyor)
+        if (file != null && !file.isEmpty()) {
+            String fileName = fileStorageService.storeFile(file);
+            String fileType = file.getContentType();
+            
+            if (fileType != null && fileType.startsWith("image")) {
+                newPost.setImageUrl(fileName);
+            } else if (fileType != null && fileType.startsWith("video")) {
+                newPost.setVideoUrl(fileName);
+            }
+        }
 
-         // Gelen dosyanın türünü (MIME type) kontrol et
-         String fileType = file.getContentType();
-
-         if (fileType != null && fileType.startsWith("image")) {
-             // Eğer türü 'image/jpeg', 'image/png' ise:
-             newPost.setImageUrl(fileName);
-         } else if (fileType != null && fileType.startsWith("video")) {
-             // Eğer türü 'video/mp4', 'video/webm' ise:
-             newPost.setVideoUrl(fileName);
-         }
-     }
-     // ...
-        // (Eğer dosya yoksa, imageUrl alanı 'null' olarak kalır, bu normal)
-
-        // 4. Veritabanına kaydet
         return postRepository.save(newPost);
     }
 }
