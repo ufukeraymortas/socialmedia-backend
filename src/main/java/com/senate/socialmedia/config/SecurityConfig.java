@@ -1,4 +1,4 @@
-package com.senate.socialmedia.config; // Sizin paket adınız
+package com.senate.socialmedia.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,13 +20,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-        .csrf(csrf -> csrf.disable()) // CSRF korumasını kapat (API'ler için gerekli)
-
-        // Tüm API ve uploads yollarına İZİN VER (Giriş zorunluluğu yok)
-        .authorizeHttpRequests(authz -> authz
-            .requestMatchers("/api/**", "/uploads/**", "/h2-console/**").permitAll()
-            .anyRequest().authenticated()
-        );
+            .csrf(csrf -> csrf.disable()) // API için CSRF kapat
+            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())) // H2 konsolu için
+            .authorizeHttpRequests(authz -> authz
+                // BURASI ÇOK ÖNEMLİ:
+                // Tüm API'lere (/api/**), dosyalara (/uploads/**) ve H2 konsoluna İZİN VER
+                .requestMatchers("/api/**", "/uploads/**", "/h2-console/**").permitAll()
+                // Diğer her şey de serbest olsun (Test aşamasında sorun çıkmaması için)
+                .anyRequest().permitAll() 
+            );
+            
         return http.build();
     }
 }
