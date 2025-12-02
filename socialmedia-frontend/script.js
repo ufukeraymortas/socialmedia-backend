@@ -132,7 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (user.profilePictureUrl) {
                 profilePictureEl.src = `${API_URL}/uploads/${user.profilePictureUrl}`;
             } else {
-                profilePictureEl.src = 'https://via.placeholder.com/100';
+                // Daha hızlı ve güvenilir bir varsayılan resim
+		profilePictureEl.src = 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
             }
             
             // Düzenleme formu için inputları hazırla (kendi profilimse)
