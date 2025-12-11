@@ -23,6 +23,9 @@ public class PostService {
     
     @Autowired
     private FileStorageService fileStorageService;
+    
+    @Autowired
+    private com.senate.socialmedia.CommunityRepository communityRepository;
 
     /**
      * Ana sayfa akışı için tüm gönderileri getiren iş mantığı.
@@ -38,30 +41,34 @@ public class PostService {
     /**
      * Yeni post, retweet veya alıntı oluşturur.
      */
-    public Post createPost(String content, Long authorId, MultipartFile file, Long originalPostId) {
+    public Post createPost(String content, Long authorId, MultipartFile file, Long originalPostId, Long communityId) {
         
-        // 1. Yazarı bul
         User author = userRepository.findById(authorId)
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
 
-        // 2. Yeni Post nesnesi
         Post newPost = new Post();
         newPost.setContent(content);
         newPost.setAuthor(author);
-        newPost.setTimestamp(LocalDateTime.now());
+        newPost.setTimestamp(java.time.LocalDateTime.now());
         
-        // 3. YENİ: Bu bir Retweet veya Alıntı mı?
+        // Retweet/Alıntı Kontrolü
         if (originalPostId != null) {
             Post original = postRepository.findById(originalPostId)
                     .orElseThrow(() -> new RuntimeException("Orijinal post bulunamadı."));
             newPost.setOriginalPost(original);
         }
 
-        // 4. Medya Kaydetme (Aynı kalıyor)
+        // YENİ: Topluluk Kontrolü
+        if (communityId != null) {
+            Community community = communityRepository.findById(communityId)
+                    .orElseThrow(() -> new RuntimeException("Topluluk bulunamadı."));
+            newPost.setCommunity(community);
+        }
+
+        // Medya İşlemleri (Aynı kalıyor)
         if (file != null && !file.isEmpty()) {
             String fileName = fileStorageService.storeFile(file);
             String fileType = file.getContentType();
-            
             if (fileType != null && fileType.startsWith("image")) {
                 newPost.setImageUrl(fileName);
             } else if (fileType != null && fileType.startsWith("video")) {

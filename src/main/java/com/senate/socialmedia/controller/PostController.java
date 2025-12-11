@@ -23,6 +23,12 @@ public class PostController {
     @Autowired
     private PostService postService;
     
+    @Autowired
+    private UserRepository userRepository; 
+    
+    @Autowired
+    private PostRepository postRepository; 
+    
     // /api/posts adresine gelen bir HTTP GET isteğini yakalar
     // Bu, ana sayfa akışıdır
     @GetMapping
@@ -34,18 +40,16 @@ public class PostController {
     // /api/posts adresine gelen bir HTTP POST isteğini yakalar
     // Bu, yeni gönderi oluşturma işlemidir
     @PostMapping
-    public Post createPost(@RequestParam(value = "content", required = false) String content, // İçerik bazen boş olabilir (Sadece RT yaparsa)
+    public Post createPost(@RequestParam(value = "content", required = false) String content,
                            @RequestParam("authorId") Long authorId,
                            @RequestParam(value = "file", required = false) MultipartFile file,
-                           @RequestParam(value = "originalPostId", required = false) Long originalPostId) {
+                           @RequestParam(value = "originalPostId", required = false) Long originalPostId,
+                           // YENİ PARAMETRE:
+                           @RequestParam(value = "communityId", required = false) Long communityId) {
         
-        return postService.createPost(content, authorId, file, originalPostId);
+        // Servise communityId'yi de gönderiyoruz
+        return postService.createPost(content, authorId, file, originalPostId, communityId);
     }
-    
-    @Autowired
-    private UserRepository userRepository; 
-    @Autowired
-    private PostRepository postRepository; 
 
     // GET /api/posts/user/{userId} -> Bir kullanıcının postlarını getir
     @GetMapping("/user/{userId}")
