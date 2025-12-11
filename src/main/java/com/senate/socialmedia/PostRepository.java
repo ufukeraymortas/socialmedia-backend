@@ -7,12 +7,9 @@ import java.util.List;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-
-    // --- Kendi Özel Metotlarımız (Bunlar zaten vardı) ---
-    
-    // Anasayfa akışı için: Tüm postları zaman damgasına göre tersten sırala
+    // 1. Ana Akış İçin: Tüm postları yeniden eskiye sırala
     List<Post> findAllByOrderByTimestampDesc();
-    
-    // (Gelecekteki profil sayfası için): Belirli bir kullanıcının tüm postlarını bul
-    List<Post> findByAuthorOrderByTimestampDesc(User author);
+
+    // 2. Profil Sayfası İçin: Sadece belirli bir yazarın postlarını getir (EKSİK OLAN BUYDU)
+    List<Post> findByAuthorIdOrderByTimestampDesc(Long authorId);
 }
