@@ -38,14 +38,20 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore // JSON sonsuz döngüsünü engellemek için
     private Set<Comment> comments;
-    
- // ... (mevcut likes, comments alanlarının altına)
 
     // İlişki 4:: Bu post, başka bir postun alıntısı veya retweet'i mi?
     // Birçok Post, tek bir Orijinal Postu paylaşabilir.
     @ManyToOne
     @JoinColumn(name = "original_post_id")
     private Post originalPost;
+    
+    @ManyToOne
+    @JoinColumn(name = "community_id")
+    private Community community;
+
+    // Getter ve Setter
+    public Community getCommunity() { return community; }
+    public void setCommunity(Community community) { this.community = community; }
 
     // Getter ve Setter'lar
     public Post getOriginalPost() {
