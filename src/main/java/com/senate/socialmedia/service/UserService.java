@@ -100,4 +100,30 @@ public class UserService {
         return userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
     }
+    
+ // ... sınıfın içine ekle:
+
+    public void followUser(Long currentUserId, Long targetUserId) {
+        if(currentUserId.equals(targetUserId)) throw new RuntimeException("Kendini takip edemezsin!");
+        
+        User currentUser = userRepository.findById(currentUserId).orElseThrow();
+        User targetUser = userRepository.findById(targetUserId).orElseThrow();
+
+        currentUser.getFollowing().add(targetUser);
+        userRepository.save(currentUser);
+    }
+
+    public void unfollowUser(Long currentUserId, Long targetUserId) {
+        User currentUser = userRepository.findById(currentUserId).orElseThrow();
+        User targetUser = userRepository.findById(targetUserId).orElseThrow();
+
+        currentUser.getFollowing().remove(targetUser);
+        userRepository.save(currentUser);
+    }
+
+    public boolean isFollowing(Long currentUserId, Long targetUserId) {
+        User currentUser = userRepository.findById(currentUserId).orElseThrow();
+        // Takip ettiklerim listesinde bu kişi var mı?
+        return currentUser.getFollowing().stream().anyMatch(u -> u.getId().equals(targetUserId));
+    }
 }

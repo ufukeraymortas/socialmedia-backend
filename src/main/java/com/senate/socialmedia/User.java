@@ -1,59 +1,44 @@
-package com.senate.socialmedia; 
+package com.senate.socialmedia;
 
-// Gerekli kütüphaneleri içe aktarıyoruz (import)
-// Bunlar, Spring Boot 3+ ile gelen 'jakarta' kütüphaneleridir.
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore; // Sonsuz döngü önleyici
+import java.util.Set;
+import java.util.HashSet;
 
-@Entity // 1. ÖNEMLİ ANOTASYON: Spring'e bunun bir veritabanı tablosu olduğunu söyler.
-@Table(name = "users") // 2. İsteğe bağlı: Tablo adını 'users' olarak belirler (yoksa sınıf adını kullanırdı).
+@Entity
+@Table(name = "users")
 public class User {
-
-    @Id // 3. ÖNEMLİ ANOTASYON: Bu alanın 'Primary Key' (Birincil Anahtar) olduğunu söyler.
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // 4. ID'nin otomatik artmasını sağlar (1, 2, 3...)
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username; // Kullanıcı adı için bir sütun
-    private String password; // Şifre için bir sütun
-    private String title;             // Kullanıcının ünvanı (örn: "Yazılımcı")
-    private String bio;   
-    private String profilePictureUrl; 
-    private String headerUrl;
-   
-    public String getProfilePictureUrl() {
-		return profilePictureUrl;
-	}
+    @Column(nullable = false, unique = true)
+    private String username;
+    
+    @Column(nullable = false)
+    private String password;
+    
+    // Profil Bilgileri
+    private String title; // Ünvan
+    private String bio;   // Biyografi
+    private String profilePictureUrl; // Profil Resmi
+    private String headerUrl; // Kapak Resmi (Header)
 
-	public void setProfilePictureUrl(String profilePictureUrl) {
-		this.profilePictureUrl = profilePictureUrl;
-	}
-	
-	public String getHeaderUrl() {
-		return headerUrl; 
-	}
-	
-    public void setHeaderUrl(String headerUrl) {
-    	this.headerUrl = headerUrl; 
-    }
+    @ManyToMany
+    @JoinTable(
+        name = "user_followers",
+        joinColumns = @JoinColumn(name = "follower_id"),
+        inverseJoinColumns = @JoinColumn(name = "followed_id")
+    )
+    private Set<User> following = new HashSet<>();
 
-	public String getTitle() {
-		return title;
-	}
+    // Beni takip edenler
+    @ManyToMany(mappedBy = "following")
+    @JsonIgnore // Beni takip edenleri çekerken, onların takip ettiklerini çekmeye çalışma (Döngüye girer)
+    private Set<User> followers = new HashSet<>();
 
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
-	public String getBio() {
-		return bio;
-	}
-
-	public void setBio(String bio) {
-		this.bio = bio;
-	}
+    // --- CONSTRUCTOR & GETTER-SETTER ---
 
     public User() {
     }
@@ -80,5 +65,54 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getProfilePictureUrl() {
+        return profilePictureUrl;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profilePictureUrl = profilePictureUrl;
+    }
+
+    public String getHeaderUrl() {
+        return headerUrl;
+    }
+
+    public void setHeaderUrl(String headerUrl) {
+        this.headerUrl = headerUrl;
+    }
+
+    // Takip Getter/Setter
+    public Set<User> getFollowing() {
+        return following;
+    }
+
+    public void setFollowing(Set<User> following) {
+        this.following = following;
+    }
+
+    public Set<User> getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(Set<User> followers) {
+        this.followers = followers;
     }
 }

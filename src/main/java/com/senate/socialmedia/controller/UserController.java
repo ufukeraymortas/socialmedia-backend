@@ -53,4 +53,23 @@ public class UserController {
         
         return userService.updateUserProfile(id, title, bio, profilePicture, headerPicture);
     }
+ // ... (Mevcut kodların altına, sınıfın içine ekle)
+
+    // Takip Et
+    @PostMapping("/{userId}/follow")
+    public void followUser(@PathVariable Long userId, @RequestParam Long currentUserId) {
+        userService.followUser(currentUserId, userId);
+    }
+
+    // Takibi Bırak
+    @PostMapping("/{userId}/unfollow")
+    public void unfollowUser(@PathVariable Long userId, @RequestParam Long currentUserId) {
+        userService.unfollowUser(currentUserId, userId);
+    }
+
+    // Takip Durumunu Kontrol Et (Butonun rengi için lazım)
+    @GetMapping("/{userId}/is-following")
+    public boolean isFollowing(@PathVariable Long userId, @RequestParam Long currentUserId) {
+        return userService.isFollowing(currentUserId, userId);
+    }
 }
