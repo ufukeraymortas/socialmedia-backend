@@ -28,4 +28,9 @@ public class CommunityService {
     public List<Community> getAllCommunities() {
         return communityRepository.findAll();
     }
+    
+ // Controller'dan çağırıp güncel halini kaydetmek için
+    public Community save(Community community) {
+        return communityRepository.save(community);
+    }
 }
