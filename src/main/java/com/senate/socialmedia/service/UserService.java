@@ -72,32 +72,26 @@ public class UserService {
         }
     }
     
-    /**
-     * Kullanıcının profilini (PP, ünvan, bio) günceller. (YENİ METOT)
-     */
-    public User updateProfile(Long userId, String title, String bio, MultipartFile profilePicture) {
-        // 1. Güncellenecek kullanıcıyı ID ile bul
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
+    
+ // UserService.java 
+    public User updateUserProfile(Long userId, String title, String bio, MultipartFile profilePicture, MultipartFile headerPicture) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Kullanıcı yok"));
         
-        // 2. Alanları güncelle (null gelirse güncellemeyi atlarız, ama Controller'dan hepsi geleceği için direkt atama yapıyoruz)
-        if (title != null) {
-            user.setTitle(title);
-        }
-        if (bio != null) {
-            user.setBio(bio);
+        if(title != null) user.setTitle(title);
+        if(bio != null) user.setBio(bio);
+        
+        // Profil Resmi
+        if(profilePicture != null && !profilePicture.isEmpty()) {
+            String ppName = fileStorageService.storeFile(profilePicture);
+            user.setProfilePictureUrl(ppName);
         }
 
-        // 3. PP yükleme mantığı
-        if (profilePicture != null && !profilePicture.isEmpty()) {
-            // Dosyayı FileStorageService kullanarak diske kaydet
-            String fileName = fileStorageService.storeFile(profilePicture);
-            
-            // Profil resminin URL'sini veritabanına kaydet
-            user.setProfilePictureUrl(fileName);
+        // YENİ: Header Resmi
+        if(headerPicture != null && !headerPicture.isEmpty()) {
+            String headerName = fileStorageService.storeFile(headerPicture);
+            user.setHeaderUrl(headerName);
         }
-        
-        // 4. Veritabanına kaydet ve güncellenmiş kullanıcıyı geri döndür
+
         return userRepository.save(user);
     }
     

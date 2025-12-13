@@ -21,6 +21,7 @@ public class User {
     private String title;             // Kullanıcının ünvanı (örn: "Yazılımcı")
     private String bio;   
     private String profilePictureUrl; 
+    private String headerUrl;
    
     public String getProfilePictureUrl() {
 		return profilePictureUrl;
@@ -29,6 +30,14 @@ public class User {
 	public void setProfilePictureUrl(String profilePictureUrl) {
 		this.profilePictureUrl = profilePictureUrl;
 	}
+	
+	public String getHeaderUrl() {
+		return headerUrl; 
+	}
+	
+    public void setHeaderUrl(String headerUrl) {
+    	this.headerUrl = headerUrl; 
+    }
 
 	public String getTitle() {
 		return title;

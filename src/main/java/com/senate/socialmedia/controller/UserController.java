@@ -43,14 +43,14 @@ public class UserController {
         return userService.findById(userId);
     }
 
-    // PUT /api/users/{userId}/profile (Profil Güncelleme)
-    // MultipartFile kullanıyoruz çünkü fotoğraf yükleme var.
-    @PutMapping("/{userId}/profile") 
-    public User updateProfile(@PathVariable Long userId,
-                              @RequestParam(value = "title", required = false) String title,
-                              @RequestParam(value = "bio", required = false) String bio,
-                              @RequestParam(value = "profilePicture", required = false) MultipartFile profilePicture) {
+ // UserController.java içindeki updateProfile metodu (GÜNCELLENMİŞ HALİ):
+    @PutMapping("/{id}/profile")
+    public User updateProfile(@PathVariable Long id, 
+                              @RequestParam(required=false) String title,
+                              @RequestParam(required=false) String bio,
+                              @RequestParam(value="profilePicture", required=false) MultipartFile profilePicture,
+                              @RequestParam(value="headerPicture", required=false) MultipartFile headerPicture) { // YENİ
         
-        return userService.updateProfile(userId, title, bio, profilePicture);
+        return userService.updateUserProfile(id, title, bio, profilePicture, headerPicture);
     }
 }
