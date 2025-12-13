@@ -101,8 +101,6 @@ public class UserService {
             .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı."));
     }
     
- // ... sınıfın içine ekle:
-
     public void followUser(Long currentUserId, Long targetUserId) {
         if(currentUserId.equals(targetUserId)) throw new RuntimeException("Kendini takip edemezsin!");
         

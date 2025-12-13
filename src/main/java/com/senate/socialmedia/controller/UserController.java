@@ -53,8 +53,7 @@ public class UserController {
         
         return userService.updateUserProfile(id, title, bio, profilePicture, headerPicture);
     }
- // ... (Mevcut kodların altına, sınıfın içine ekle)
-
+ 
     // Takip Et
     @PostMapping("/{userId}/follow")
     public void followUser(@PathVariable Long userId, @RequestParam Long currentUserId) {

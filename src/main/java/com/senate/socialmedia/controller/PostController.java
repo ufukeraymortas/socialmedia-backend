@@ -43,7 +43,6 @@ public class PostController {
     @Autowired
     private com.senate.socialmedia.PostRepository postRepository; // Hızlı erişim için
 
-    // Post Silme: DELETE /api/posts/{id}
     @DeleteMapping("/{id}")
     public void deletePost(@PathVariable Long id) {
         // Normalde burada "Silmeye çalışan kişi postun sahibi mi?" kontrolü yapılır.

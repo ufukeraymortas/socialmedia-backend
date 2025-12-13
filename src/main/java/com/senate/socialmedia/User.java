@@ -35,7 +35,7 @@ public class User {
 
     // Beni takip edenler
     @ManyToMany(mappedBy = "following")
-    @JsonIgnore // Beni takip edenleri çekerken, onların takip ettiklerini çekmeye çalışma (Döngüye girer)
+    @JsonIgnore
     private Set<User> followers = new HashSet<>();
 
     // --- CONSTRUCTOR & GETTER-SETTER ---
