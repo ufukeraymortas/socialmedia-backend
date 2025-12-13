@@ -15,4 +15,10 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "(m.sender.id = :userId2 AND m.receiver.id = :userId1) " +
            "ORDER BY m.timestamp ASC")
     List<Message> findChatHistory(Long userId1, Long userId2);
+    
+ // Mesajlaştığım benzersiz (Distinct) kullanıcıları getir
+    @Query("SELECT DISTINCT u FROM User u WHERE u.id IN " +
+           "(SELECT m.sender.id FROM Message m WHERE m.receiver.id = :userId) OR " +
+           "u.id IN (SELECT m.receiver.id FROM Message m WHERE m.sender.id = :userId)")
+    List<User> findConversations(Long userId);
 }

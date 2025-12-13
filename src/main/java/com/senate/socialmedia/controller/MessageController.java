@@ -32,4 +32,12 @@ public class MessageController {
     public List<Message> getChatHistory(@RequestParam Long u1, @RequestParam Long u2) {
         return messageService.getChatHistory(u1, u2);
     }
+    
+ // Sohbet Listem: GET /api/messages/conversations?userId=5
+    @GetMapping("/conversations")
+    public List<com.senate.socialmedia.User> getConversations(@RequestParam Long userId) {
+        // Repository'ye şu an erişemiyorsak service üzerinden geçmeliyiz.
+        // Hızlı çözüm için Service'e ekleyip çağıralım:
+        return messageService.getConversations(userId);
+    }
 }

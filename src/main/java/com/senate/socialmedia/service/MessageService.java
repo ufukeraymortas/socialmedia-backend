@@ -37,4 +37,9 @@ public class MessageService {
     public List<Message> getChatHistory(Long userId1, Long userId2) {
         return messageRepository.findChatHistory(userId1, userId2);
     }
+    
+ // MessageService.java içine ekle:
+    public List<User> getConversations(Long userId) {
+        return messageRepository.findConversations(userId);
+    }
 }
