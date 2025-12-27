@@ -22,7 +22,7 @@ public class CommunityController {
     private PostRepository postRepository;
 
     @Autowired
-    private UserRepository userRepository; // Kurucuyu bulmak için lazım
+    private UserRepository userRepository;
 
     @Autowired
     private FileStorageService fileStorageService;
@@ -35,13 +35,12 @@ public class CommunityController {
         return communityRepository.findAll();
     }
 
-    // YENİ: Topluluk Oluştur (Kurucuyu Kaydet)
     @PostMapping
     public Community createCommunity(
             @RequestParam String name,
             @RequestParam String description,
             @RequestParam boolean isPublic,
-            @RequestParam Long creatorId, // <--- ARTIK KURUCU ID'Sİ İSTİYORUZ
+            @RequestParam Long creatorId,
             @RequestParam(required=false) MultipartFile icon,
             @RequestParam(required=false) MultipartFile banner) {
         
@@ -52,7 +51,7 @@ public class CommunityController {
         comm.setName(name);
         comm.setDescription(description);
         comm.setPublic(isPublic);
-        comm.setFounder(creator); // <--- KURUCUYU ATADIK
+        comm.setFounder(creator);
 
         if(icon != null && !icon.isEmpty()) comm.setIconUrl(fileStorageService.storeFile(icon));
         if(banner != null && !banner.isEmpty()) comm.setBannerUrl(fileStorageService.storeFile(banner));
@@ -65,32 +64,36 @@ public class CommunityController {
         return communityRepository.findById(id).orElseThrow();
     }
 
-    // GÜVENLİ SİLME (Sadece Kurucu Silebilir)
     @DeleteMapping("/{id}")
     public void deleteCommunity(@PathVariable Long id, @RequestParam Long requesterId) {
         Community comm = communityRepository.findById(id).orElseThrow();
 
-        // KONTROL: İsteyen kişi kurucu mu?
-        if (!comm.getFounder().getId().equals(requesterId)) {
-            // İleride buraya "|| requesterId == comm.getCurrentPresident().getId()" eklenecek
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Buna yetkiniz yok! Sadece kurucu feshedebilir.");
+        // GÜVENLİK GÜNCELLEMESİ: Kurucu NULL ise (Eski topluluksa) hata verme, silmeye izin ver.
+        if (comm.getFounder() != null) {
+            if (!comm.getFounder().getId().equals(requesterId)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Yetkiniz yok! Sadece kurucu silebilir.");
+            }
         }
+        // Eğer founder null ise, kod buraya devam eder ve siler (Bu sayede eski toplulukları temizleyebilirsin)
 
         postRepository.deleteByCommunityId(id);
         communityRepository.deleteById(id);
     }
 
-    // RÜTBE EKLEME (Sadece Kurucu Ekleyebilir)
     @PostMapping("/{id}/ranks")
     public CommunityRank addRank(
             @PathVariable Long id, 
             @RequestParam String name, 
             @RequestParam int threshold,
-            @RequestParam Long requesterId) { // <--- İsteyen kişi kim?
+            @RequestParam Long requesterId) {
         
         Community comm = communityRepository.findById(id).orElseThrow();
 
-        // KONTROL: İsteyen kişi kurucu mu?
+        // GÜVENLİK: Kurucu yoksa işlem yapma
+        if (comm.getFounder() == null) {
+             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bu topluluğun sahibi yok. Önce sahiplenmelisiniz.");
+        }
+
         if (!comm.getFounder().getId().equals(requesterId)) {
              throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Yetkisiz işlem.");
         }
@@ -106,5 +109,22 @@ public class CommunityController {
     @GetMapping("/{id}/ranks")
     public List<CommunityRank> getRanks(@PathVariable Long id) {
         return rankRepository.findByCommunityIdOrderByThresholdDesc(id);
+    }
+
+    // --- YENİ: ESKİ TOPLULUKLARI KURTARMA (TAMİR) ---
+    // Bu adrese istek atarak sahipsiz topluluğu üzerine alabilirsin.
+    // Kullanım: POST /api/communities/{id}/claim?userId={seninIdn}
+    @PostMapping("/{id}/claim")
+    public Community claimCommunity(@PathVariable Long id, @RequestParam Long userId) {
+        Community comm = communityRepository.findById(id).orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow();
+
+        // Sadece sahibi yoksa verelim
+        if(comm.getFounder() == null) {
+            comm.setFounder(user);
+            return communityRepository.save(comm);
+        } else {
+            throw new RuntimeException("Bu topluluğun zaten bir sahibi var: " + comm.getFounder().getUsername());
+        }
     }
 }
