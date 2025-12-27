@@ -18,7 +18,7 @@ public class CommunityService {
     private UserRepository userRepository;
 
     @Autowired
-    private PostRepository postRepository; // Silme işlemi için lazım
+    private PostRepository postRepository;
 
     @Autowired
     private FileStorageService fileStorageService;
@@ -72,16 +72,23 @@ public class CommunityService {
         }
     }
 
-    // --- DÜZELTİLDİ: ESKİ TOPLULUKLARI SİLME ---
+    // --- GÜNCELLENDİ: SÜPER ADMİN YETKİSİ ---
     @Transactional
     public void deleteCommunity(Long communityId, Long requesterId) {
         Community comm = communityRepository.findById(communityId).orElseThrow();
+        User requester = userRepository.findById(requesterId).orElseThrow();
 
-        // 1. Eğer kurucu NULL ise (Eski Kayıt): Direkt silmeye izin ver (Temizlik için)
-        // 2. Eğer kurucu varsa: İsteyen kişi kurucu mu diye bak.
+        // 1. ÖZEL KONTROL: Eğer kullanıcı "ufukeraymortas" ise HER ŞEYİ SİLEBİLİR!
+        if (requester.getUsername().equals("ufukeraymortas")) {
+            postRepository.deleteByCommunityId(communityId);
+            communityRepository.deleteById(communityId);
+            return; // İşlem tamam, fonksiyondan çık
+        }
+
+        // 2. Normal Kontrol (Kurucu mu?)
         if (comm.getFounder() != null) {
             if (!comm.getFounder().getId().equals(requesterId)) {
-                throw new RuntimeException("Yetkiniz yok! Sadece kurucu silebilir.");
+                throw new RuntimeException("Yetkiniz yok! Sadece kurucu (veya ufukeraymortas) silebilir.");
             }
         }
         
@@ -89,16 +96,18 @@ public class CommunityService {
         communityRepository.deleteById(communityId);
     }
 
-    // --- YENİ: RESİM GÜNCELLEME (Kurucu veya Başkan) ---
     @Transactional
     public Community updateCommunityVisuals(Long communityId, Long requesterId, MultipartFile icon, MultipartFile banner) {
         Community comm = communityRepository.findById(communityId).orElseThrow();
+        User requester = userRepository.findById(requesterId).orElseThrow();
         
+        // Buraya da ekleyelim: ufukeraymortas ise düzenleyebilir
+        boolean isSuperUser = requester.getUsername().equals("ufukeraymortas");
         boolean isFounder = comm.getFounder() != null && comm.getFounder().getId().equals(requesterId);
         boolean isPresident = comm.getPresident() != null && comm.getPresident().getId().equals(requesterId);
 
-        if (!isFounder && !isPresident) {
-            throw new RuntimeException("Yetkiniz yok. Sadece Başkan veya Kurucu değiştirebilir.");
+        if (!isFounder && !isPresident && !isSuperUser) {
+            throw new RuntimeException("Yetkiniz yok.");
         }
 
         if (icon != null && !icon.isEmpty()) {
