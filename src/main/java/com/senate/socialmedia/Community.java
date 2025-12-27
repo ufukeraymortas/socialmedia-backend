@@ -1,6 +1,7 @@
 package com.senate.socialmedia;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "communities")
@@ -23,6 +24,11 @@ public class Community {
     // YENİ: Gizlilik Ayarı (true = Herkese Açık, false = Özel/İzinli)
     private boolean isPublic = true; 
 
+    @ManyToOne
+    @JoinColumn(name = "founder_id")
+    @JsonIgnoreProperties({"posts", "votes", "following", "followers", "password"}) 
+    private User founder;
+    
     // Getter ve Setter'lar
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -41,4 +47,7 @@ public class Community {
 
     public boolean isPublic() { return isPublic; }
     public void setPublic(boolean isPublic) { this.isPublic = isPublic; }
+    
+    public User getFounder() { return founder; }
+    public void setFounder(User founder) { this.founder = founder; }
 }
