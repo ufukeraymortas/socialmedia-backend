@@ -29,6 +29,11 @@ public class Community {
     @JsonIgnoreProperties({"posts", "votes", "following", "followers", "password"}) 
     private User founder;
     
+    @ManyToOne
+    @JoinColumn(name = "president_id")
+    @JsonIgnoreProperties({"posts", "votes", "following", "followers", "password"}) 
+    private User president;
+    
     // Getter ve Setter'lar
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -50,4 +55,7 @@ public class Community {
     
     public User getFounder() { return founder; }
     public void setFounder(User founder) { this.founder = founder; }
+    
+    public User getPresident() { return president; }
+    public void setPresident(User president) { this.president = president; }
 }
