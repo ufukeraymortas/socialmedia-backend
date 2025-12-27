@@ -44,16 +44,12 @@ public class PostController {
         return postRepository.findByAuthorIdOrderByTimestampDesc(userId);
     }
 
-    // 3. TOPLULUK POSTLARI (RÜTBE HESAPLAMALI)
+    // 3. TOPLULUK POSTLARI
     @GetMapping("/community/{communityId}")
     public List<Post> getPostsByCommunity(@PathVariable Long communityId) {
-        // A. Postları çek
         List<Post> posts = postRepository.findByCommunityIdOrderByTimestampDesc(communityId);
-        
-        // B. Kuralları çek
         List<CommunityRank> rules = rankRepository.findByCommunityIdOrderByThresholdDesc(communityId);
 
-        // C. Her post için rütbe hesapla
         for (Post post : posts) {
             Integer karma = voteRepository.getUserCommunityKarma(post.getAuthor().getId(), communityId);
             if (karma == null) karma = 0;
@@ -67,7 +63,6 @@ public class PostController {
             }
             post.setAuthorRank(userRank);
         }
-
         return posts;
     }
 
