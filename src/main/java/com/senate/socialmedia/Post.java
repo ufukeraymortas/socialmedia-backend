@@ -23,6 +23,12 @@ public class Post {
     
     private String videoUrl; // Video adresi
 
+    @Transient // Bu alan veritabanına kaydedilmez, sadece JSON'da gider.
+    private String authorRank;
+
+    public String getAuthorRank() { return authorRank; }
+    public void setAuthorRank(String authorRank) { this.authorRank = authorRank; }
+
     // İlişki 1: Kim attı? (Post'tan User'a)
     @ManyToOne(fetch = FetchType.EAGER) // Postu çekerken yazarı hemen getir
     @JoinColumn(name = "author_id") 
