@@ -1,7 +1,7 @@
 package com.senate.socialmedia.controller;
 
 import com.senate.socialmedia.*;
-import com.senate.socialmedia.service.FileStorageService;
+import com.senate.socialmedia.service.CommunityService; // Service'i import ettik
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,25 +16,22 @@ import java.util.List;
 public class CommunityController {
 
     @Autowired
-    private CommunityRepository communityRepository;
+    private CommunityService communityService; // Repository yerine Service kullanıyoruz
 
+    @Autowired
+    private CommunityRepository communityRepository; // Sadece basit okumalar ve silme için kalabilir
     @Autowired
     private PostRepository postRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private FileStorageService fileStorageService;
-
     @Autowired
     private CommunityRankRepository rankRepository;
 
+    // 1. LİSTELE
     @GetMapping
     public List<Community> getAllCommunities() {
-        return communityRepository.findAll();
+        return communityService.getAllCommunities();
     }
 
+    // 2. OLUŞTUR (Service kullanır)
     @PostMapping
     public Community createCommunity(
             @RequestParam String name,
@@ -44,42 +41,42 @@ public class CommunityController {
             @RequestParam(required=false) MultipartFile icon,
             @RequestParam(required=false) MultipartFile banner) {
         
-        User creator = userRepository.findById(creatorId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı"));
-
-        Community comm = new Community();
-        comm.setName(name);
-        comm.setDescription(description);
-        comm.setPublic(isPublic);
-        comm.setFounder(creator);
-
-        if(icon != null && !icon.isEmpty()) comm.setIconUrl(fileStorageService.storeFile(icon));
-        if(banner != null && !banner.isEmpty()) comm.setBannerUrl(fileStorageService.storeFile(banner));
-
-        return communityRepository.save(comm);
+        return communityService.createCommunity(name, description, isPublic, creatorId, icon, banner);
     }
 
+    // 3. DETAY GETİR
     @GetMapping("/{id}")
     public Community getCommunity(@PathVariable Long id) {
-        return communityRepository.findById(id).orElseThrow();
+        return communityService.getCommunity(id);
     }
 
+    // 4. KATIL (JOIN) - YENİ
+    @PostMapping("/{id}/join")
+    public void joinCommunity(@PathVariable Long id, @RequestParam Long userId) {
+        communityService.joinCommunity(id, userId);
+    }
+
+    // 5. SAHİPLEN (CLAIM)
+    @PostMapping("/{id}/claim")
+    public Community claimCommunity(@PathVariable Long id, @RequestParam Long userId) {
+        return communityService.claimCommunity(id, userId);
+    }
+
+    // 6. SİLME (Hala burada kalabilir veya Service'e taşınabilir, şimdilik burada kalsın)
     @DeleteMapping("/{id}")
     public void deleteCommunity(@PathVariable Long id, @RequestParam Long requesterId) {
         Community comm = communityRepository.findById(id).orElseThrow();
 
-        // GÜVENLİK GÜNCELLEMESİ: Kurucu NULL ise (Eski topluluksa) hata verme, silmeye izin ver.
         if (comm.getFounder() != null) {
             if (!comm.getFounder().getId().equals(requesterId)) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Yetkiniz yok! Sadece kurucu silebilir.");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Yetkiniz yok!");
             }
         }
-        // Eğer founder null ise, kod buraya devam eder ve siler (Bu sayede eski toplulukları temizleyebilirsin)
-
         postRepository.deleteByCommunityId(id);
         communityRepository.deleteById(id);
     }
 
+    // 7. RÜTBE EKLEME
     @PostMapping("/{id}/ranks")
     public CommunityRank addRank(
             @PathVariable Long id, 
@@ -89,14 +86,8 @@ public class CommunityController {
         
         Community comm = communityRepository.findById(id).orElseThrow();
 
-        // GÜVENLİK: Kurucu yoksa işlem yapma
-        if (comm.getFounder() == null) {
-             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bu topluluğun sahibi yok. Önce sahiplenmelisiniz.");
-        }
-
-        if (!comm.getFounder().getId().equals(requesterId)) {
-             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Yetkisiz işlem.");
-        }
+        if (comm.getFounder() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sahibi yok.");
+        if (!comm.getFounder().getId().equals(requesterId)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Yetkisiz.");
         
         CommunityRank rank = new CommunityRank();
         rank.setName(name);
@@ -109,22 +100,5 @@ public class CommunityController {
     @GetMapping("/{id}/ranks")
     public List<CommunityRank> getRanks(@PathVariable Long id) {
         return rankRepository.findByCommunityIdOrderByThresholdDesc(id);
-    }
-
-    // --- YENİ: ESKİ TOPLULUKLARI KURTARMA (TAMİR) ---
-    // Bu adrese istek atarak sahipsiz topluluğu üzerine alabilirsin.
-    // Kullanım: POST /api/communities/{id}/claim?userId={seninIdn}
-    @PostMapping("/{id}/claim")
-    public Community claimCommunity(@PathVariable Long id, @RequestParam Long userId) {
-        Community comm = communityRepository.findById(id).orElseThrow();
-        User user = userRepository.findById(userId).orElseThrow();
-
-        // Sadece sahibi yoksa verelim
-        if(comm.getFounder() == null) {
-            comm.setFounder(user);
-            return communityRepository.save(comm);
-        } else {
-            throw new RuntimeException("Bu topluluğun zaten bir sahibi var: " + comm.getFounder().getUsername());
-        }
     }
 }

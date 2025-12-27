@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set; // <--- EKLENDİ
+import java.util.HashSet; // <--- EKLENDİ
 
 @Entity
 @Table(name = "elections")
@@ -13,20 +15,23 @@ public class Election {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private boolean isActive; // Seçim şu an devam ediyor mu?
+    private boolean isActive;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
-    // Hangi topluluğun seçimi?
     @ManyToOne
     @JoinColumn(name = "community_id", nullable = false)
-    @JsonIgnoreProperties("president") 
+    @JsonIgnoreProperties("president")
     private Community community;
 
-    // Adaylar Listesi
     @OneToMany(mappedBy = "election", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("election")
     private List<Candidate> candidates;
+
+    // --- YENİ: KİMLER OY KULLANDI? (HİLE KORUMASI) ---
+    @ElementCollection
+    private Set<Long> voterIds = new HashSet<>(); 
+    // -----------------------------------------------
 
     public Election() {
         this.startDate = LocalDateTime.now();
@@ -51,4 +56,7 @@ public class Election {
 
     public List<Candidate> getCandidates() { return candidates; }
     public void setCandidates(List<Candidate> candidates) { this.candidates = candidates; }
+
+    public Set<Long> getVoterIds() { return voterIds; }
+    public void setVoterIds(Set<Long> voterIds) { this.voterIds = voterIds; }
 }

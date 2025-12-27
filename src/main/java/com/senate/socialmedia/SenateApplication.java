@@ -2,9 +2,11 @@ package com.senate.socialmedia;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import jakarta.annotation.PostConstruct; // Yeni eklenecek
+import jakarta.annotation.PostConstruct; 
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 public class SenateApplication {
 
     public static void main(String[] args) {
