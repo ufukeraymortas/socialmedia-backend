@@ -49,4 +49,10 @@ public class PostController {
         // Şimdilik hızlı ilerlemek için direkt siliyoruz.
         postRepository.deleteById(id);
     }
+    
+ // Topluluk Postlarını Getir: GET /api/posts/community/5
+    @GetMapping("/community/{communityId}")
+    public List<Post> getPostsByCommunity(@PathVariable Long communityId) {
+        return postRepository.findByCommunityIdOrderByTimestampDesc(communityId);
+    }
 }

@@ -1,11 +1,12 @@
 package com.senate.socialmedia.controller;
 
 import com.senate.socialmedia.Community;
-import com.senate.socialmedia.service.CommunityService;
-import com.senate.socialmedia.service.FileStorageService; // Resim servisini ekledik
+import com.senate.socialmedia.CommunityRepository;
+import com.senate.socialmedia.PostRepository; // Postları silmek için lazım
+import com.senate.socialmedia.service.FileStorageService; // Resim yüklemek için lazım
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile; // Dosya yükleme için
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -15,49 +16,63 @@ import java.util.List;
 public class CommunityController {
 
     @Autowired
-    private CommunityService communityService;
+    private CommunityRepository communityRepository;
 
     @Autowired
-    private FileStorageService fileStorageService; // Dosya kaydetmek için
+    private PostRepository postRepository; // Silme işlemi için
 
-    // Topluluk Oluştur (Artık Resim Destekli)
+    @Autowired
+    private FileStorageService fileStorageService; // Resim işlemleri için
+
+    // 1. Tüm Toplulukları Listele
+    @GetMapping
+    public List<Community> getAllCommunities() {
+        return communityRepository.findAll();
+    }
+
+    // 2. Yeni Topluluk Oluştur (Resimli ve Gizlilik Ayarlı)
     @PostMapping
     public Community createCommunity(
-            @RequestParam("name") String name,
-            @RequestParam("description") String description,
-            @RequestParam("isPublic") boolean isPublic,
-            @RequestParam(value = "icon", required = false) MultipartFile icon,
-            @RequestParam(value = "banner", required = false) MultipartFile banner
-    ) {
-        Community community = communityService.createCommunity(name, description);
+            @RequestParam String name,
+            @RequestParam String description,
+            @RequestParam boolean isPublic,
+            @RequestParam(required=false) MultipartFile icon,
+            @RequestParam(required=false) MultipartFile banner) {
         
-        // Gizlilik ayarını güncelle
-        community.setPublic(isPublic);
+        Community comm = new Community();
+        comm.setName(name);
+        comm.setDescription(description);
+        comm.setPublic(isPublic);
 
         // İkon varsa kaydet
-        if (icon != null && !icon.isEmpty()) {
+        if(icon != null && !icon.isEmpty()) {
             String iconName = fileStorageService.storeFile(icon);
-            community.setIconUrl(iconName);
+            comm.setIconUrl(iconName);
         }
 
         // Banner varsa kaydet
-        if (banner != null && !banner.isEmpty()) {
+        if(banner != null && !banner.isEmpty()) {
             String bannerName = fileStorageService.storeFile(banner);
-            community.setBannerUrl(bannerName);
+            comm.setBannerUrl(bannerName);
         }
-        
-        // Güncellemeleri kaydetmek için tekrar save çağırmalıyız veya service içinde halletmeliyiz.
-        // Hızlı çözüm için repository'e buradan erişmek yerine service'e save methodu ekleyebiliriz
-        // ama CommunityService'deki 'createCommunity' zaten 'save' döndürüyor.
-        // O yüzden burada icon set edip tekrar save etmemiz lazım.
-        // Basitlik adına, CommunityService'e bir update metodu eklemeden,
-        // direkt repository'i buraya autowire etmek yerine Service'e bir 'save' metodu ekleyelim.
-        
-        return communityService.save(community); 
+
+        return communityRepository.save(comm);
     }
 
-    @GetMapping
-    public List<Community> getAllCommunities() {
-        return communityService.getAllCommunities();
+    // 3. Tek Bir Topluluğun Detayını Getir
+    @GetMapping("/{id}")
+    public Community getCommunity(@PathVariable Long id) {
+        return communityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Topluluk bulunamadı id: " + id));
+    }
+
+    // 4. Topluluğu Feshet (Sil) - Önce Postları Temizler
+    @DeleteMapping("/{id}")
+    public void deleteCommunity(@PathVariable Long id) {
+        // Önce bu topluluğa ait postları sil (Veritabanı hatasını önlemek için)
+        postRepository.deleteByCommunityId(id);
+        
+        // Şimdi topluluğu sil
+        communityRepository.deleteById(id);
     }
 }
