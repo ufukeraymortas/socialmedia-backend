@@ -18,6 +18,9 @@ public class CommunityService {
     private UserRepository userRepository;
 
     @Autowired
+    private PostRepository postRepository; // Silme işlemi için lazım
+
+    @Autowired
     private FileStorageService fileStorageService;
 
     public List<Community> getAllCommunities() {
@@ -29,7 +32,6 @@ public class CommunityService {
                 .orElseThrow(() -> new RuntimeException("Topluluk bulunamadı."));
     }
 
-    // TOPLULUK OLUŞTURMA (Kurucuyu otomatik üye yapıyoruz)
     @Transactional
     public Community createCommunity(String name, String description, boolean isPublic, Long creatorId, MultipartFile icon, MultipartFile banner) {
         User creator = userRepository.findById(creatorId)
@@ -40,10 +42,64 @@ public class CommunityService {
         comm.setDescription(description);
         comm.setPublic(isPublic);
         comm.setFounder(creator);
-        comm.setCandidateQuota(10); // Varsayılan aday kotası
-
-        // Kurucuyu otomatik olarak "Üyeler" listesine ekle (En eski üye olması için)
+        comm.setCandidateQuota(10); 
         comm.getMembers().add(creator);
+
+        if (icon != null && !icon.isEmpty()) comm.setIconUrl(fileStorageService.storeFile(icon));
+        if (banner != null && !banner.isEmpty()) comm.setBannerUrl(fileStorageService.storeFile(banner));
+
+        return communityRepository.save(comm);
+    }
+
+    @Transactional
+    public void joinCommunity(Long communityId, Long userId) {
+        Community comm = communityRepository.findById(communityId).orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow();
+        comm.getMembers().add(user);
+        communityRepository.save(comm);
+    }
+
+    @Transactional
+    public Community claimCommunity(Long communityId, Long userId) {
+        Community comm = communityRepository.findById(communityId).orElseThrow();
+        User user = userRepository.findById(userId).orElseThrow();
+        if (comm.getFounder() == null) {
+            comm.setFounder(user);
+            comm.getMembers().add(user);
+            return communityRepository.save(comm);
+        } else {
+            throw new RuntimeException("Zaten sahibi var.");
+        }
+    }
+
+    // --- DÜZELTİLDİ: ESKİ TOPLULUKLARI SİLME ---
+    @Transactional
+    public void deleteCommunity(Long communityId, Long requesterId) {
+        Community comm = communityRepository.findById(communityId).orElseThrow();
+
+        // 1. Eğer kurucu NULL ise (Eski Kayıt): Direkt silmeye izin ver (Temizlik için)
+        // 2. Eğer kurucu varsa: İsteyen kişi kurucu mu diye bak.
+        if (comm.getFounder() != null) {
+            if (!comm.getFounder().getId().equals(requesterId)) {
+                throw new RuntimeException("Yetkiniz yok! Sadece kurucu silebilir.");
+            }
+        }
+        
+        postRepository.deleteByCommunityId(communityId);
+        communityRepository.deleteById(communityId);
+    }
+
+    // --- YENİ: RESİM GÜNCELLEME (Kurucu veya Başkan) ---
+    @Transactional
+    public Community updateCommunityVisuals(Long communityId, Long requesterId, MultipartFile icon, MultipartFile banner) {
+        Community comm = communityRepository.findById(communityId).orElseThrow();
+        
+        boolean isFounder = comm.getFounder() != null && comm.getFounder().getId().equals(requesterId);
+        boolean isPresident = comm.getPresident() != null && comm.getPresident().getId().equals(requesterId);
+
+        if (!isFounder && !isPresident) {
+            throw new RuntimeException("Yetkiniz yok. Sadece Başkan veya Kurucu değiştirebilir.");
+        }
 
         if (icon != null && !icon.isEmpty()) {
             comm.setIconUrl(fileStorageService.storeFile(icon));
@@ -53,35 +109,5 @@ public class CommunityService {
         }
 
         return communityRepository.save(comm);
-    }
-
-    // TOPLULUĞA KATIL (JOIN) - Transactional önemli!
-    @Transactional
-    public void joinCommunity(Long communityId, Long userId) {
-        Community comm = communityRepository.findById(communityId)
-                .orElseThrow(() -> new RuntimeException("Topluluk yok"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı yok"));
-
-        // Set olduğu için zaten ekliyse tekrar eklemez, hata vermez.
-        comm.getMembers().add(user);
-        
-        communityRepository.save(comm);
-    }
-
-    // SAHİPLENME (CLAIM)
-    @Transactional
-    public Community claimCommunity(Long communityId, Long userId) {
-        Community comm = communityRepository.findById(communityId).orElseThrow();
-        User user = userRepository.findById(userId).orElseThrow();
-
-        if (comm.getFounder() == null) {
-            comm.setFounder(user);
-            // Sahip olan kişiyi üye de yapalım
-            comm.getMembers().add(user);
-            return communityRepository.save(comm);
-        } else {
-            throw new RuntimeException("Bu topluluğun zaten sahibi var.");
-        }
     }
 }

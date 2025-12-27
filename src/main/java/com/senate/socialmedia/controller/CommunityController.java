@@ -1,7 +1,7 @@
 package com.senate.socialmedia.controller;
 
 import com.senate.socialmedia.*;
-import com.senate.socialmedia.service.CommunityService; // Service'i import ettik
+import com.senate.socialmedia.service.CommunityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,22 +16,18 @@ import java.util.List;
 public class CommunityController {
 
     @Autowired
-    private CommunityService communityService; // Repository yerine Service kullanıyoruz
+    private CommunityService communityService;
 
     @Autowired
-    private CommunityRepository communityRepository; // Sadece basit okumalar ve silme için kalabilir
-    @Autowired
-    private PostRepository postRepository;
+    private CommunityRepository communityRepository; // Okuma işlemleri için
     @Autowired
     private CommunityRankRepository rankRepository;
 
-    // 1. LİSTELE
     @GetMapping
     public List<Community> getAllCommunities() {
         return communityService.getAllCommunities();
     }
 
-    // 2. OLUŞTUR (Service kullanır)
     @PostMapping
     public Community createCommunity(
             @RequestParam String name,
@@ -40,43 +36,47 @@ public class CommunityController {
             @RequestParam Long creatorId,
             @RequestParam(required=false) MultipartFile icon,
             @RequestParam(required=false) MultipartFile banner) {
-        
         return communityService.createCommunity(name, description, isPublic, creatorId, icon, banner);
     }
 
-    // 3. DETAY GETİR
     @GetMapping("/{id}")
     public Community getCommunity(@PathVariable Long id) {
         return communityService.getCommunity(id);
     }
 
-    // 4. KATIL (JOIN) - YENİ
     @PostMapping("/{id}/join")
     public void joinCommunity(@PathVariable Long id, @RequestParam Long userId) {
         communityService.joinCommunity(id, userId);
     }
 
-    // 5. SAHİPLEN (CLAIM)
     @PostMapping("/{id}/claim")
     public Community claimCommunity(@PathVariable Long id, @RequestParam Long userId) {
         return communityService.claimCommunity(id, userId);
     }
 
-    // 6. SİLME (Hala burada kalabilir veya Service'e taşınabilir, şimdilik burada kalsın)
     @DeleteMapping("/{id}")
     public void deleteCommunity(@PathVariable Long id, @RequestParam Long requesterId) {
-        Community comm = communityRepository.findById(id).orElseThrow();
-
-        if (comm.getFounder() != null) {
-            if (!comm.getFounder().getId().equals(requesterId)) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Yetkiniz yok!");
-            }
+        try {
+            communityService.deleteCommunity(id, requesterId);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
         }
-        postRepository.deleteByCommunityId(id);
-        communityRepository.deleteById(id);
     }
 
-    // 7. RÜTBE EKLEME
+    // --- YENİ: RESİM GÜNCELLEME ---
+    @PutMapping("/{id}/images")
+    public Community updateImages(
+            @PathVariable Long id,
+            @RequestParam Long requesterId,
+            @RequestParam(required = false) MultipartFile icon,
+            @RequestParam(required = false) MultipartFile banner) {
+        try {
+            return communityService.updateCommunityVisuals(id, requesterId, icon, banner);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
+        }
+    }
+
     @PostMapping("/{id}/ranks")
     public CommunityRank addRank(
             @PathVariable Long id, 
@@ -85,7 +85,6 @@ public class CommunityController {
             @RequestParam Long requesterId) {
         
         Community comm = communityRepository.findById(id).orElseThrow();
-
         if (comm.getFounder() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sahibi yok.");
         if (!comm.getFounder().getId().equals(requesterId)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Yetkisiz.");
         
@@ -93,7 +92,6 @@ public class CommunityController {
         rank.setName(name);
         rank.setThreshold(threshold);
         rank.setCommunity(comm);
-        
         return rankRepository.save(rank);
     }
 
