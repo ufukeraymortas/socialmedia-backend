@@ -24,10 +24,10 @@ public class PostController {
     private CommunityRepository communityRepository;
 
     @Autowired
-    private VoteRepository voteRepository; // Puan hesabı için
+    private VoteRepository voteRepository;
 
     @Autowired
-    private CommunityRankRepository rankRepository; // Rütbe kuralları için
+    private CommunityRankRepository rankRepository;
 
     @Autowired
     private FileStorageService fileStorageService;
@@ -44,7 +44,7 @@ public class PostController {
         return postRepository.findByAuthorIdOrderByTimestampDesc(userId);
     }
 
-    // 3. TOPLULUK POSTLARI (RÜTBE HESAPLAMALI) - YENİ
+    // 3. TOPLULUK POSTLARI (RÜTBE HESAPLAMALI)
     @GetMapping("/community/{communityId}")
     public List<Post> getPostsByCommunity(@PathVariable Long communityId) {
         // A. Postları çek
