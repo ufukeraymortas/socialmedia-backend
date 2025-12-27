@@ -6,7 +6,5 @@ import java.util.List;
 
 @Repository
 public interface CommunityRankRepository extends JpaRepository<CommunityRank, Long> {
-    
-    // Topluluğun rütbelerini getir (Baraj puanına göre büyükten küçüğe sırala)
     List<CommunityRank> findByCommunityIdOrderByThresholdDesc(Long communityId);
 }

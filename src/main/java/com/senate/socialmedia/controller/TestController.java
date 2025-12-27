@@ -1,79 +1,39 @@
 package com.senate.socialmedia.controller;
 
-// --- BURAYA DİKKAT: Importları tek tek açıkça yazdım ---
-import com.senate.socialmedia.Community;
-import com.senate.socialmedia.service.ElectionScheduler;
-
-// Repository'lerinizin hepsi "repository" paketinde mi?
-// Eğer hepsi ana klasördeyse bu "repository." kısımlarını silmelisin.
-import com.senate.socialmedia.VoteRepository;
-import com.senate.socialmedia.CandidateRepository;
-import com.senate.socialmedia.ElectionRepository;
-import com.senate.socialmedia.PostRepository;
-import com.senate.socialmedia.CommunityRankRepository;
-import com.senate.socialmedia.CommunityRepository;
-import com.senate.socialmedia.UserRepository;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.HashSet;
-
 @RestController
 @RequestMapping("/api/test")
 public class TestController {
 
-    @Autowired private ElectionScheduler electionScheduler;
-    @Autowired private VoteRepository voteRepository;
-    @Autowired private CandidateRepository candidateRepository;
-    @Autowired private ElectionRepository electionRepository;
-    @Autowired private PostRepository postRepository;
-    @Autowired private CommunityRankRepository rankRepository;
-    @Autowired private CommunityRepository communityRepository;
-    @Autowired private UserRepository userRepository;
+    @PersistenceContext
+    private EntityManager entityManager;
 
-    @GetMapping("/start-elections")
-    public String forceStart() {
-        electionScheduler.startAnnualElections();
-        return "✅ Seçimler Başlatıldı!";
-    }
-
-    @GetMapping("/finish-elections")
-    public String forceFinish() {
-        electionScheduler.finishAnnualElections();
-        return "🏁 Seçimler Bitirildi!";
-    }
-
-    // 🔥 KİLİT AÇICI SIFIRLAMA KODU 🔥
+    // 🔥 BALYOZ YÖNTEMİ: SQL İLE ZORLA SİLME 🔥
     @GetMapping("/factory-reset")
     @Transactional
-    public String factoryReset() {
-        // 1. Önce Toplulukların içindeki bağları kopar (Zinciri Kır)
-        List<Community> communities = communityRepository.findAll();
-        for (Community c : communities) {
-            c.setFounder(null);    // Kurucuyu unut
-            c.setPresident(null);  // Başkanı unut
-            c.setMembers(new HashSet<>()); // Üyeleri boşalt
-            communityRepository.save(c);
+    public String nukeDatabase() {
+        try {
+            // Bu komut tüm tabloların içini, bağlantılarına bakmaksızın boşaltır.
+            entityManager.createNativeQuery(
+                "TRUNCATE TABLE " +
+                "users, communities, posts, votes, candidates, elections, community_ranks, messages, community_members " +
+                "RESTART IDENTITY CASCADE"
+            ).executeUpdate();
+
+            return "✅ SİSTEM SQL İLE ZORLA SIFIRLANDI! Veritabanı tertemiz.";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "❌ HATA: " + e.getMessage();
         }
-
-        // 2. Şimdi Alt Tabloları Sil
-        voteRepository.deleteAll();
-        candidateRepository.deleteAll();
-        electionRepository.deleteAll();
-        rankRepository.deleteAll();
-        postRepository.deleteAll();
-        
-        // 3. Artık Toplulukları silebiliriz (Bağ kalmadı)
-        communityRepository.deleteAll();
-        
-        // 4. En son Kullanıcıları sil
-        userRepository.deleteAll();
-
-        return "♻️ SİSTEM BAŞARIYLA SIFIRLANDI! (500 Hatası Çözüldü). Şimdi siteye dönüp 'Kayıt Ol' diyebilirsin.";
     }
+    
+    // Test amaçlı seçim başlatma (İstersen kalsın)
+    @GetMapping("/start-elections")
+    public String ping() { return "Pong"; }
 }
