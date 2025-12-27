@@ -1,18 +1,32 @@
 package com.senate.socialmedia.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
-public class WebConfig implements WebMvcConfigurer {
+public class WebConfig {
 
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        // Tüm adreslere (/**) gelen isteklere izin ver
-        registry.addMapping("/**")
-                .allowedOrigins("*") // Vercel, Localhost vs. her yerden erişime izin ver
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Tüm işlemleri aç
-                .allowedHeaders("*"); // Tüm başlıkları kabul et
+    @Bean
+    public CorsFilter corsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        
+        // 1. Her yerden gelen isteklere izin ver
+        config.setAllowCredentials(true);
+        config.setAllowedOriginPatterns(Collections.singletonList("*")); 
+        
+        // 2. Tüm başlıklara ve metodlara izin ver
+        config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        
+        // 3. Tüm yollara uygula
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
     }
 }
