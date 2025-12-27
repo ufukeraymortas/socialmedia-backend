@@ -15,7 +15,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
            "ORDER BY m.timestamp ASC")
     List<Message> findChatHistory(Long userId1, Long userId2);
 
-    // --- EKSİK OLAN KISIM BURASI OLABİLİR ---
     // Mesajlaştığım kişilerin listesini getir (Hem alıcı hem gönderici olarak)
     @Query("SELECT DISTINCT u FROM User u WHERE u.id IN " +
            "(SELECT m.sender.id FROM Message m WHERE m.receiver.id = :userId) OR " +

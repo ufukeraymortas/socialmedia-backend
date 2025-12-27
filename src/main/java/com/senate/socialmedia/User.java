@@ -1,7 +1,8 @@
 package com.senate.socialmedia;
 
 import jakarta.persistence.*;
-import com.fasterxml.jackson.annotation.JsonIgnore; // Sonsuz döngü önleyici
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties; // YENİ
 import java.util.Set;
 import java.util.HashSet;
 
@@ -19,100 +20,56 @@ public class User {
     @Column(nullable = false)
     private String password;
     
-    // Profil Bilgileri
-    private String title; // Ünvan
-    private String bio;   // Biyografi
-    private String profilePictureUrl; // Profil Resmi
-    private String headerUrl; // Kapak Resmi (Header)
+    private String title;
+    private String bio;
+    private String profilePictureUrl;
+    private String headerUrl;
 
+    // --- TAKİP SİSTEMİ GÜNCELLEMESİ ---
+    
+    // Benim takip ettiklerim (İç içe döngüyü engellemek için onların takipçilerini getirme)
     @ManyToMany
     @JoinTable(
         name = "user_followers",
         joinColumns = @JoinColumn(name = "follower_id"),
         inverseJoinColumns = @JoinColumn(name = "followed_id")
     )
+    @JsonIgnoreProperties({"following", "followers", "password"}) // <--- BU SATIRI EKLEDİK
     private Set<User> following = new HashSet<>();
 
-    // Beni takip edenler
+    // Beni takip edenler (Zaten Ignore edilmişti, doğru)
     @ManyToMany(mappedBy = "following")
-    @JsonIgnore
+    @JsonIgnore 
     private Set<User> followers = new HashSet<>();
 
     // --- CONSTRUCTOR & GETTER-SETTER ---
 
-    public User() {
-    }
+    public User() {}
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
-    public String getUsername() {
-        return username;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public String getPassword() {
-        return password;
-    }
+    public String getBio() { return bio; }
+    public void setBio(String bio) { this.bio = bio; }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    public String getProfilePictureUrl() { return profilePictureUrl; }
+    public void setProfilePictureUrl(String pp) { this.profilePictureUrl = pp; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getHeaderUrl() { return headerUrl; }
+    public void setHeaderUrl(String h) { this.headerUrl = h; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public Set<User> getFollowing() { return following; }
+    public void setFollowing(Set<User> following) { this.following = following; }
 
-    public String getBio() {
-        return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
-
-    public String getProfilePictureUrl() {
-        return profilePictureUrl;
-    }
-
-    public void setProfilePictureUrl(String profilePictureUrl) {
-        this.profilePictureUrl = profilePictureUrl;
-    }
-
-    public String getHeaderUrl() {
-        return headerUrl;
-    }
-
-    public void setHeaderUrl(String headerUrl) {
-        this.headerUrl = headerUrl;
-    }
-
-    // Takip Getter/Setter
-    public Set<User> getFollowing() {
-        return following;
-    }
-
-    public void setFollowing(Set<User> following) {
-        this.following = following;
-    }
-
-    public Set<User> getFollowers() {
-        return followers;
-    }
-
-    public void setFollowers(Set<User> followers) {
-        this.followers = followers;
-    }
+    public Set<User> getFollowers() { return followers; }
+    public void setFollowers(Set<User> followers) { this.followers = followers; }
 }

@@ -1,6 +1,7 @@
 package com.senate.socialmedia;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties; // <--- BU KÜTÜPHANE ÖNEMLİ
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,19 +13,22 @@ public class Message {
     private Long id;
 
     @Column(nullable = false)
-    private String content; // Mesaj içeriği
+    private String content;
 
-    private LocalDateTime timestamp; // Atılma zamanı
+    private LocalDateTime timestamp;
 
-    // Gönderen Kişi
+    // --- DÜZELTME BURADA ---
+    // Kullanıcıyı getir ama onun takip listelerini (following, followers) ve şifresini JSON'a yazma!
     @ManyToOne
     @JoinColumn(name = "sender_id", nullable = false)
+    @JsonIgnoreProperties({"following", "followers", "password", "hibernateLazyInitializer", "handler"})
     private User sender;
 
-    // Alan Kişi
     @ManyToOne
     @JoinColumn(name = "receiver_id", nullable = false)
+    @JsonIgnoreProperties({"following", "followers", "password", "hibernateLazyInitializer", "handler"})
     private User receiver;
+    // -----------------------
 
     // --- GETTER & SETTER ---
     public Long getId() { return id; }
