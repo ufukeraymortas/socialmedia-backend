@@ -14,59 +14,53 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class PostController {
 
-    @Autowired
-    private PostRepository postRepository;
+    @Autowired private PostRepository postRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private CommunityRepository communityRepository;
+    @Autowired private VoteRepository voteRepository;
+    @Autowired private CommunityRankRepository rankRepository;
+    @Autowired private FileStorageService fileStorageService;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private CommunityRepository communityRepository;
-
-    @Autowired
-    private VoteRepository voteRepository;
-
-    @Autowired
-    private CommunityRankRepository rankRepository;
-
-    @Autowired
-    private FileStorageService fileStorageService;
-
-    // 1. Tüm Postları Getir
+    // 1. TÜM POSTLAR
     @GetMapping
     public List<Post> getAllPosts() {
         return postRepository.findAllByOrderByTimestampDesc();
     }
 
-    // 2. Bir Kullanıcının Postlarını Getir
+    // 2. KULLANICI POSTLARI
     @GetMapping("/user/{userId}")
     public List<Post> getPostsByUser(@PathVariable Long userId) {
         return postRepository.findByAuthorIdOrderByTimestampDesc(userId);
     }
 
-    // 3. TOPLULUK POSTLARI
+    // 3. TOPLULUK POSTLARI (Rütbe Hesaplamalı)
     @GetMapping("/community/{communityId}")
     public List<Post> getPostsByCommunity(@PathVariable Long communityId) {
         List<Post> posts = postRepository.findByCommunityIdOrderByTimestampDesc(communityId);
         List<CommunityRank> rules = rankRepository.findByCommunityIdOrderByThresholdDesc(communityId);
 
         for (Post post : posts) {
-            Integer karma = voteRepository.getUserCommunityKarma(post.getAuthor().getId(), communityId);
-            if (karma == null) karma = 0;
+            try {
+                Integer karma = voteRepository.getUserCommunityKarma(post.getAuthor().getId(), communityId);
+                if (karma == null) karma = 0;
 
-            String userRank = ""; 
-            for (CommunityRank rule : rules) {
-                if (karma >= rule.getThreshold()) {
-                    userRank = rule.getName();
-                    break; 
+                String userRank = ""; 
+                for (CommunityRank rule : rules) {
+                    if (karma >= rule.getThreshold()) {
+                        userRank = rule.getName();
+                        break; 
+                    }
                 }
+                post.setAuthorRank(userRank);
+            } catch (Exception e) {
+                // Hata olursa rütbesiz devam et, akışı bozma
+                post.setAuthorRank("");
             }
-            post.setAuthorRank(userRank);
         }
         return posts;
     }
 
-    // 4. Yeni Post At
+    // 4. YENİ POST AT
     @PostMapping
     public Post createPost(
             @RequestParam String content,
@@ -75,7 +69,8 @@ public class PostController {
             @RequestParam(required = false) Long originalPostId,
             @RequestParam(required = false) Long communityId) {
 
-        User author = userRepository.findById(authorId).orElseThrow();
+        User author = userRepository.findById(authorId).orElseThrow(() -> new RuntimeException("Kullanıcı yok"));
+        
         Post post = new Post();
         post.setContent(content);
         post.setAuthor(author);
@@ -91,19 +86,17 @@ public class PostController {
         }
 
         if (originalPostId != null) {
-            Post original = postRepository.findById(originalPostId).orElse(null);
-            post.setOriginalPost(original);
+            post.setOriginalPost(postRepository.findById(originalPostId).orElse(null));
         }
 
         if (communityId != null) {
-            Community comm = communityRepository.findById(communityId).orElse(null);
-            post.setCommunity(comm);
+            post.setCommunity(communityRepository.findById(communityId).orElse(null));
         }
 
         return postRepository.save(post);
     }
 
-    // 5. Oy Ver
+    // 5. OY VER
     @PostMapping("/{postId}/vote")
     public void vote(@PathVariable Long postId, @RequestParam Long userId, @RequestParam VoteType type) {
         Post post = postRepository.findById(postId).orElseThrow();
@@ -126,25 +119,24 @@ public class PostController {
         }
     }
 
-    // 6. Postun Oy Durumunu Getir
+    // 6. POST OY DURUMU
     @GetMapping("/{postId}/vote")
     public VoteResponse getVoteStatus(@PathVariable Long postId, @RequestParam Long userId) {
         Integer score = voteRepository.getPostScore(postId);
         if (score == null) score = 0;
 
-        Post post = postRepository.findById(postId).orElseThrow();
-        User user = userRepository.findById(userId).orElseThrow();
-        Optional<Vote> v = voteRepository.findByPostAndUser(post, user);
-
         String userVote = null;
-        if (v.isPresent()) {
-            userVote = v.get().getType().toString();
-        }
+        try {
+            Post post = postRepository.findById(postId).orElseThrow();
+            User user = userRepository.findById(userId).orElseThrow();
+            Optional<Vote> v = voteRepository.findByPostAndUser(post, user);
+            if (v.isPresent()) userVote = v.get().getType().toString();
+        } catch (Exception e) {}
 
         return new VoteResponse(score, userVote);
     }
 
-    // 7. Post Sil
+    // 7. SİL
     @DeleteMapping("/{id}")
     public void deletePost(@PathVariable Long id) {
         postRepository.deleteById(id);
