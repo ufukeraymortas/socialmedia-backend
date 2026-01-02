@@ -7,21 +7,22 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @SpringBootApplication
-public class SenateApplication { // Senin dosya adın neyse o kalsın
+public class SenateApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SenateApplication.class, args);
     }
 
-    // 🔥 GLOBAL CORS AYARI - ANA DOSYANIN İÇİNDE 🔥
+    // 🔥 KESİN CORS ÇÖZÜMÜ: BURADAKİ AYAR HER ŞEYİ EZER 🔥
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("*") // Tüm kapıları aç
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
+                registry.addMapping("/**") // Tüm linklere izin ver
+                        .allowedOrigins("*") // Vercel, Localhost, her yerden gelen isteği kabul et
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH") // Tüm metodları aç
+                        .allowedHeaders("*"); // Tüm başlıkları kabul et
             }
         };
     }
