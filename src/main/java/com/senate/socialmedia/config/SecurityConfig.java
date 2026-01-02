@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder; // 🔥 BU EKLENDİ
+import org.springframework.security.crypto.password.PasswordEncoder;     // 🔥 BU EKLENDİ
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -18,36 +20,37 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // 1. CSRF Korumasını Kapat (API'ler için gereklidir)
-            .csrf(csrf -> csrf.disable())
-            
-            // 2. CORS Ayarlarını Aktif Et
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            
-            // 3. Hangi sayfalara şifresiz girilebilir?
+            .csrf(csrf -> csrf.disable()) // Güvenlik duvarını (CSRF) indir
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS ayarlarını yükle
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/**").permitAll() // /api ile başlayan HER ŞEYE izin ver
-                .anyRequest().permitAll() // Diğer her şeye de izin ver (Test için tam erişim)
+                .requestMatchers("/api/**").permitAll() // API'lere herkes erişsin
+                .anyRequest().permitAll() // Diğer her şeye de izin ver
             );
 
         return http.build();
     }
 
-    // 🔥 KAPSAMLI CORS AYARI 🔥
+    // 🔥 İŞTE EKSİK OLAN PARÇA BU: ŞİFRELEYİCİ TANIMI 🔥
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    // CORS AYARLARI (Vercel Erişimi İçin)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // Vercel ve her yerden gelen isteklere izin ver
+        // Vercel, Localhost vb. her yerden gelen isteği kabul et
         configuration.setAllowedOriginPatterns(Collections.singletonList("*"));
         
         // Tüm metodlara izin ver (GET, POST, PUT, DELETE...)
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
         
-        // Tüm başlıklara (Header) izin ver
+        // Tüm başlıklara izin ver
         configuration.setAllowedHeaders(Arrays.asList("*"));
         
-        // Çerezlere izin ver (Gerekirse)
+        // Kimlik bilgilerine izin ver
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
