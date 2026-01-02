@@ -1,21 +1,16 @@
-package com.senate.socialmedia;
+package com.senate.socialmedia; // 1. Paket ismini klasöre uygun hale getirdik
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import java.util.Optional; // 'null' yerine daha güvenli bir tip
+import java.util.Optional;
 
-@Repository // Spring'e bunun bir veritabanı bileşeni (Repository) olduğunu söyler
+@Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    // --- JpaRepository sayesinde ---
-    // save() -> (Kullanıcı kaydet/güncelle)
-    // findById() -> (ID'ye göre kullanıcı bul)
-    // findAll() -> (Tüm kullanıcıları bul)
-    // delete() -> (Kullanıcı sil)
-    // ...gibi metotlar bize OTOMATİK olarak geldi!
+    // Giriş yaparken kullanıcıyı bulmak için:
+    Optional<User> findByUsername(String username);
 
-    // --- Kendi Özel Metodumuzu Ekleyelim ---
-    // Spring Data, metodun isminden ne yapması gerektiğini anlar:
-    // "Kullanıcı adına (username) göre bir kullanıcı bul"
-    Optional<User> findByUsername(String username); 
+    // Kayıt olurken "Bu isim kullanılıyor mu?" diye hızlıca bakmak için:
+    // (Veritabanından tüm kullanıcıyı çekmek yerine sadece var mı yok mu diye bakar, çok hızlıdır)
+    boolean existsByUsername(String username);
 }

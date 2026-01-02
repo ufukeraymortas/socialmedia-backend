@@ -2,23 +2,27 @@ package com.senate.socialmedia;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import jakarta.annotation.PostConstruct; 
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @SpringBootApplication
-@EnableScheduling
-public class SenateApplication {
+public class SenateApplication { // Senin dosya adın neyse o kalsın
 
     public static void main(String[] args) {
         SpringApplication.run(SenateApplication.class, args);
     }
-    
-    @PostConstruct
-    public void setPostgresqlDriver() {
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace(); 
-        }
+
+    // 🔥 GLOBAL CORS AYARI - ANA DOSYANIN İÇİNDE 🔥
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("*") // Tüm kapıları aç
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
+            }
+        };
     }
 }

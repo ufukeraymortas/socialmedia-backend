@@ -1,50 +1,42 @@
 package com.senate.socialmedia;
 
 import jakarta.persistence.*;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties; // YENİ
-import java.util.Set;
 import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
 public class User {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true, nullable = false)
     private String username;
-    
-    @Column(nullable = false)
+
     private String password;
-    
-    private String title;
-    private String bio;
+    private String title;  // Örn: "Senatör", "Vatandaş"
+    private String bio;    // Profil biyografisi
     private String profilePictureUrl;
     private String headerUrl;
-
-    // --- TAKİP SİSTEMİ GÜNCELLEMESİ ---
     
-    // Benim takip ettiklerim (İç içe döngüyü engellemek için onların takipçilerini getirme)
-    @ManyToMany
+    // 🔥 EKSİK OLAN KISIM BURASIYDI 🔥
+    private int karma = 0; // Varsayılan puan 0
+
+    // İlişkiler (Takipçiler ve Takip Edilenler)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_followers",
-        joinColumns = @JoinColumn(name = "follower_id"),
-        inverseJoinColumns = @JoinColumn(name = "followed_id")
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "follower_id")
     )
-    @JsonIgnoreProperties({"following", "followers", "password"}) // <--- BU SATIRI EKLEDİK
-    private Set<User> following = new HashSet<>();
-
-    // Beni takip edenler (Zaten Ignore edilmişti, doğru)
-    @ManyToMany(mappedBy = "following")
-    @JsonIgnore 
     private Set<User> followers = new HashSet<>();
 
-    // --- CONSTRUCTOR & GETTER-SETTER ---
+    @ManyToMany(mappedBy = "followers", fetch = FetchType.EAGER)
+    private Set<User> following = new HashSet<>();
 
-    public User() {}
+    // --- GETTER VE SETTER METOTLARI ---
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -62,14 +54,18 @@ public class User {
     public void setBio(String bio) { this.bio = bio; }
 
     public String getProfilePictureUrl() { return profilePictureUrl; }
-    public void setProfilePictureUrl(String pp) { this.profilePictureUrl = pp; }
+    public void setProfilePictureUrl(String profilePictureUrl) { this.profilePictureUrl = profilePictureUrl; }
 
     public String getHeaderUrl() { return headerUrl; }
-    public void setHeaderUrl(String h) { this.headerUrl = h; }
+    public void setHeaderUrl(String headerUrl) { this.headerUrl = headerUrl; }
 
-    public Set<User> getFollowing() { return following; }
-    public void setFollowing(Set<User> following) { this.following = following; }
+    // 🔥 setKarma BURADA! 🔥
+    public int getKarma() { return karma; }
+    public void setKarma(int karma) { this.karma = karma; }
 
     public Set<User> getFollowers() { return followers; }
     public void setFollowers(Set<User> followers) { this.followers = followers; }
+
+    public Set<User> getFollowing() { return following; }
+    public void setFollowing(Set<User> following) { this.following = following; }
 }
