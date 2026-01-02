@@ -11,9 +11,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
+@CrossOrigin(origins = "https://senato.vercel.app")
 @RestController
-@RequestMapping("/api/users")
-@CrossOrigin(origins = "*") 
 public class UserController {
 
     @Autowired
